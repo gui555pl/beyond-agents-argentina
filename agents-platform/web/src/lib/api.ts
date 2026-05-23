@@ -6,20 +6,37 @@ import type {
   Vertical,
 } from './tipos';
 
+/** URL pública do backend em produção (Render). Fallback se VITE_API_URL não entrar no build. */
+const API_PROD_FALLBACK = 'https://beyond-agents-api.onrender.com';
+
 /**
  * Base URL da API.
- * - Em dev: fica vazia → cai no proxy do Vite (vite.config.ts).
- * - Em prod (Vercel): setar VITE_API_URL com a URL do backend (ex: https://api.example.com).
- *
- * Trailing slashes são removidas para evitar `//api/...`.
+ * - Dev: vazia → proxy do Vite (vite.config.ts → localhost:4001).
+ * - Prod: VITE_API_URL no Vercel, ou fallback hardcoded acima.
  */
-export const API_BASE = (import.meta.env.VITE_API_URL ?? '').replace(/\/+$/, '');
+export const API_BASE = (
+  import.meta.env.VITE_API_URL ||
+  (import.meta.env.PROD ? API_PROD_FALLBACK : '')
+).replace(/\/+$/, '');
+
+/** Parseia JSON com mensagem clara quando o servidor devolve HTML (ex.: rewrite SPA). */
+async function parseJson<T>(r: Response, contexto: string): Promise<T> {
+  const ct = r.headers.get('content-type') ?? '';
+  if (!ct.includes('application/json')) {
+    const amostra = (await r.text()).slice(0, 80).replace(/\s+/g, ' ');
+    throw new Error(
+      `${contexto}: resposta inválida (HTTP ${r.status}). Esperava JSON, recebeu "${amostra}…". ` +
+        `API_BASE=${API_BASE || '(vazio — proxy local)'}`,
+    );
+  }
+  return (await r.json()) as T;
+}
 
 export async function getFixture(vertical?: Vertical | 'healthtech' | 'edtech'): Promise<FixtureRes> {
   const url = vertical ? `${API_BASE}/api/fixture?vertical=${vertical}` : `${API_BASE}/api/fixture`;
   const r = await fetch(url);
   if (!r.ok) throw new Error(`fixture http ${r.status}`);
-  return (await r.json()) as FixtureRes;
+  return parseJson<FixtureRes>(r, 'getFixture');
 }
 
 /** Submete o form simplificado e devolve a submissão + runId. */
@@ -30,17 +47,17 @@ export async function submitForm(form: FormSimplificado): Promise<SubmissionResp
     body: JSON.stringify({ form_simplificado: form }),
   });
   if (!r.ok) {
-    const erro = (await r.json().catch(() => ({}))) as { erro?: string };
+    const erro = await parseJson<{ erro?: string }>(r, 'submitForm').catch(() => ({ erro: `http ${r.status}` }));
     throw new Error(erro.erro ?? `http ${r.status}`);
   }
-  return (await r.json()) as SubmissionRespostaApi;
+  return parseJson<SubmissionRespostaApi>(r, 'submitForm');
 }
 
 /** Busca os dados de uma submissão por submissionId OU runId. */
 export async function getSubmissionInfo(idOrRunId: string): Promise<SubmissionInfo> {
   const r = await fetch(`${API_BASE}/api/submissions/${idOrRunId}`);
   if (!r.ok) throw new Error(`submission http ${r.status}`);
-  return (await r.json()) as SubmissionInfo;
+  return parseJson<SubmissionInfo>(r, 'getSubmissionInfo');
 }
 
 export async function cancelarRun(runId: string): Promise<void> {
@@ -59,8 +76,8 @@ export async function iniciarRunLegacy(body?: {
     body: JSON.stringify(body ?? {}),
   });
   if (!r.ok) {
-    const erro = (await r.json().catch(() => ({}))) as { erro?: string };
+    const erro = await parseJson<{ erro?: string }>(r, 'iniciarRunLegacy').catch(() => ({ erro: `http ${r.status}` }));
     throw new Error(erro.erro ?? `http ${r.status}`);
   }
-  return (await r.json()) as { runId: string; submissionId: string };
+  return parseJson<{ runId: string; submissionId: string }>(r, 'iniciarRunLegacy');
 }
