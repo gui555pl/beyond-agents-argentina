@@ -63,6 +63,45 @@ export interface DossieBuscador {
   auto_research_juridico?: string;
 }
 
+/**
+ * Copy Guide produzido pela Beatriz (agente de benchmark + estratégia de copy).
+ *
+ * Gerado 1× na raiz da árvore e compartilhado entre todos os nós como contexto
+ * pro Leandro LP gerar HTML coerente com a estratégia de mensagem.
+ */
+export interface CopyGuide {
+  icp: {
+    demografico: string;
+    psicografico: string;
+    nivel_consciencia: string;
+  };
+  jtbd: {
+    funcional: string;
+    emocional: string;
+    social: string;
+  };
+  pain_gain: {
+    dores: string[];
+    ganhos: string[];
+  };
+  pas: {
+    problema: string;
+    agitacao: string;
+    solucao: string;
+  };
+  tone_of_voice: {
+    personalidade: string;
+    register: string;
+    dos: string[];
+    donts: string[];
+  };
+  value_proposition: {
+    headline: string;
+    subheadline: string;
+    uvp: string;
+  };
+}
+
 export interface OutputValidador {
   score_parcial_fit: number;
   veto: boolean;
@@ -125,6 +164,7 @@ export interface No {
   refinamentos_feitos: number;
   validador?: OutputValidador;
   dossie?: DossieBuscador;
+  copy_guide?: CopyGuide;
   lp?: {
     lp_id: string;
     angulo: string;

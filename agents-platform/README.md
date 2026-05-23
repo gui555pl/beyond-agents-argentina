@@ -115,10 +115,28 @@ agents-platform/
     └── create-agent.ts    # CLI interativo
 ```
 
+## Inventário de agentes
+
+| # | Agente | Modelo | Função | Custo aprox./run |
+|---|---|---|---|---|
+| 1 | **Orquestrador** | `claude-haiku-4-5` | Decide expandir/refinar/podar/promover por nó | ~$0.05 |
+| 2 | **Beatriz** | `claude-sonnet-4-5` | Benchmark competitivo + Copy Guide (ICP, JTBD, PAS, Tone) — roda 1× na raiz, copy_guide compartilhado | ~$0.20 |
+| 3 | **Validador Aurora** | `claude-haiku-4-5` | Scorecard de 16 critérios + VETO regulatório | ~$0.10 |
+| 4 | **Leandro LP** | `claude-sonnet-4-5` | Gera HTML standalone completo por hipótese, usando Copy Guide como contexto. Fallback automático pro pool de fixtures em caso de falha | ~$0.30 por nó |
+| 5 | Criador de Ads | mock (fixtures) | 3 cards portrait por LP — pareados 1:1 com fixtures de LP | $0 |
+| 6 | Gestor de Tráfego | mock (delay) | Handoff visual LP → Swarm | $0 |
+| 7 | **Swarm (Miro Fish)** | `claude-haiku-4-5` | N personas em paralelo (8 default), retry de 429 | ~$0.04 |
+| 8 | Performance Analyst | determinístico | Agrega respostas + thresholds → veredito | $0 |
+
+**Custo total estimado por run** (~6 nós com Sonnet em Beatriz + Leandro): **$3-6**.
+
+Para reduzir custo, ative `DEMO_FAST_VALIDATION=true` no `.env` — substitui
+Beatriz (Sonnet) e Validador (Haiku) por mocks determinísticos. Leandro LP
+continua rodando mas perde o Copy Guide como contexto, e ainda tem fallback
+para o pool de fixtures se falhar.
+
 ## Notas
 
-- **Modelo padrão**: `claude-haiku-4-5`. Override por agente no
-  `agent.config.ts`.
 - **Multi-tenant**: até 3 runs simultâneas no worker pool. Cada submissão
   tem URL única navegável (`/runs/:runId`) que sobrevive ao restart do
   servidor (SQLite persiste tudo).
@@ -126,3 +144,8 @@ agents-platform/
   em andamento via `AbortSignal` — não consome tokens depois do cancel.
 - **Cleanup automático**: runs finalizadas há mais de 30 min saem da
   memória; events de runs finalizadas há mais de 24h saem do SQLite.
+- **Robustez de pitch**: Beatriz e Leandro têm fallback automático para
+  determinístico/pool de fixtures se a chamada LLM falhar (timeout, rate
+  limit, JSON inválido, HTML malformado). O pipeline nunca trava.
+- **Pasta `agents/buscador/`**: deprecada, mantida só como referência. O
+  pipeline em `workflows/pipeline-no.ts` chama `agents/beatriz/` agora.

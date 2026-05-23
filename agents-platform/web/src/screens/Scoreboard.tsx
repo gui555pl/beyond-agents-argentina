@@ -30,7 +30,7 @@ export function Scoreboard() {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-canvas/95 backdrop-blur-sm">
       <div className="pointer-events-none absolute inset-x-0 top-0 h-[480px] bg-aurora-radial" />
-      <div className="relative max-h-[92vh] w-full max-w-6xl overflow-y-auto rounded-xl border border-hairline bg-canvas-soft p-10">
+      <div className="relative max-h-[92vh] w-full max-w-6xl overflow-y-auto rounded-xl border border-hairline bg-canvas-soft p-4 md:p-10">
         <button
           onClick={() => setFechado(true)}
           className="absolute right-5 top-5 rounded-md border border-hairline-strong px-3 py-1.5 text-caption text-body hover:text-ink"
@@ -46,7 +46,7 @@ export function Scoreboard() {
           </p>
         </header>
 
-        <section className="mt-10 grid grid-cols-3 gap-4">
+        <section className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-3 md:mt-10 md:gap-4">
           <Kpi rotulo="Tempo de execução" valor={`${((duracaoMs ?? 0) / 1000).toFixed(1)}s`} />
           <Kpi
             rotulo="Custo total"
@@ -76,8 +76,8 @@ export function Scoreboard() {
         {custoPorAgente && (
           <section className="mt-10">
             <h2 className="text-display-sm text-ink">Custo por agente</h2>
-            <div className="mt-4 overflow-hidden rounded-lg border border-hairline">
-              <table className="w-full text-body-sm">
+            <div className="mt-4 overflow-x-auto rounded-lg border border-hairline">
+              <table className="w-full min-w-[640px] text-body-sm">
                 <thead className="bg-surface-card text-caption-uppercase text-muted">
                   <tr>
                     <th className="px-4 py-3 text-left">Agente</th>
@@ -105,7 +105,7 @@ export function Scoreboard() {
           </section>
         )}
 
-        <footer className="mt-10 flex items-center justify-between">
+        <footer className="mt-8 flex flex-col gap-3 md:mt-10 md:flex-row md:items-center md:justify-between">
           <button
             onClick={onNova}
             className="rounded-md bg-primary px-7 py-3 text-button text-on-primary transition hover:bg-primary-active"

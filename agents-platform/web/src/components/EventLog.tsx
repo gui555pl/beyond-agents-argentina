@@ -56,10 +56,10 @@ function resumir(evento: ReturnType<typeof useStore.getState>['eventos'][number]
 export function EventLog() {
   const eventos = useStore((s) => s.eventos.slice(-8).reverse());
   return (
-    <div className="border-t border-hairline bg-canvas-soft px-6 py-2.5">
-      <div className="flex items-center gap-3 overflow-hidden">
+    <div className="border-t border-hairline bg-canvas-soft px-4 py-2.5 md:px-6">
+      <div className="flex items-center gap-3">
         <span className="shrink-0 text-caption-uppercase text-muted">Eventos</span>
-        <div className="flex flex-1 gap-4 overflow-hidden">
+        <div className="flex flex-1 gap-4 overflow-x-auto">
           {eventos.length === 0 ? (
             <span className="text-caption text-muted-soft">Aguardando…</span>
           ) : (

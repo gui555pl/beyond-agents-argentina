@@ -35,8 +35,8 @@ export const FormSimplificadoSchema = z.object({
   descricao_curta: z.string().trim().min(10).max(180),
   // 4. Dor + evidência
   dor_e_evidencia: z.string().trim().min(20).max(2000),
-  // 5. Pra quem é
-  publico_alvo: z.string().trim().min(5).max(300),
+  // 5. Pra quem é (defaults Erudio ~464 chars)
+  publico_alvo: z.string().trim().min(5).max(600),
   // 6. Diferencial / moat
   diferencial_moat: z.string().trim().min(10).max(800),
   // 7. Concorrentes

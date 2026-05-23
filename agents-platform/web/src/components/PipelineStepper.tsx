@@ -92,12 +92,12 @@ export function PipelineStepper() {
 
   return (
     <div
-      className={`border-b border-hairline bg-canvas-soft px-8 py-3 ${
+      className={`border-b border-hairline bg-canvas-soft px-4 py-3 md:px-8 ${
         orquestradorPulsando ? 'ring-1 ring-inset ring-primary/40' : ''
       }`}
     >
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-2">
+      <div className="flex items-center gap-4 md:justify-between">
+        <div className="flex shrink-0 items-center gap-2">
           <span
             className={`h-2 w-2 rounded-pill ${
               orquestradorPulsando ? 'bg-primary animate-pulse-soft' : 'bg-primary/40'
@@ -105,16 +105,16 @@ export function PipelineStepper() {
           />
           <div>
             <div className="text-caption-uppercase text-primary-light">Orquestrador</div>
-            <div className="text-caption text-muted">supervisionando</div>
+            <div className="hidden text-caption text-muted sm:block">supervisionando</div>
           </div>
         </div>
 
-        <ol className="flex flex-1 items-center justify-end gap-1">
+        <ol className="flex flex-1 items-center justify-end gap-1 overflow-x-auto whitespace-nowrap">
           {ETAPAS.map((etapa, i) => {
             const ehAtiva = etapa.ordem === ativaOrdem;
             const jaPassou = etapa.ordem < ativaOrdem;
             return (
-              <li key={etapa.id} className="flex items-center">
+              <li key={etapa.id} className="flex shrink-0 items-center">
                 <EtapaPill etapa={etapa} ativa={ehAtiva} concluida={jaPassou} />
                 {i < ETAPAS.length - 1 && (
                   <span

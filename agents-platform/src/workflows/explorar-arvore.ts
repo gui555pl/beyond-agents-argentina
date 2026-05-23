@@ -18,6 +18,7 @@ import { getTracker } from '../lib/cost-tracker.js';
 import {
   CAPS_DEFAULT,
   type CapsPalco,
+  type CopyGuide,
   type DossieBuscador,
   type EventoPipeline,
   type Listener,
@@ -39,6 +40,7 @@ interface ResultadoPipeline {
   arvore: No[];
   ranking: Array<{ no: No; score_final: number }>;
   dossie_compartilhado: DossieBuscador | null;
+  copy_guide_compartilhado: CopyGuide | null;
   encerrou_por: 'caps' | 'arvore_vazia' | 'erro';
 }
 
@@ -125,6 +127,7 @@ export async function explorarArvore({
   emit({ tipo: 'no_criado', no: raiz });
 
   let dossie_compartilhado: DossieBuscador | null = null;
+  let copy_guide_compartilhado: CopyGuide | null = null;
   let encerrou_por: ResultadoPipeline['encerrou_por'] = 'arvore_vazia';
 
   while (fila.length > 0) {
@@ -135,13 +138,14 @@ export async function explorarArvore({
     }
     const no = fila.shift()!;
 
-    // 1. Processa o nó (validador + buscador + lp + ads + swarm + performance)
+    // 1. Processa o nó (Beatriz + Validador + Leandro + Ads + Swarm + Performance)
     try {
       const resultado: RodarPipelineNoResultado = await Promise.race([
         rodarPipelineNo({
           no,
           submissao,
           dossie_compartilhado,
+          copy_guide_compartilhado,
           caps,
           emit,
           run_id,
@@ -153,6 +157,9 @@ export async function explorarArvore({
       ]);
       if (!dossie_compartilhado && resultado.dossie_para_compartilhar) {
         dossie_compartilhado = resultado.dossie_para_compartilhar;
+      }
+      if (!copy_guide_compartilhado && resultado.copy_guide_para_compartilhar) {
+        copy_guide_compartilhado = resultado.copy_guide_para_compartilhar;
       }
     } catch (err) {
       const aborted = signal?.aborted || (err instanceof Error && err.name === 'AbortError');
@@ -350,7 +357,13 @@ export async function explorarArvore({
     duracao_ms: Date.now() - t0,
   });
 
-  return { arvore, ranking, dossie_compartilhado, encerrou_por };
+  return {
+    arvore,
+    ranking,
+    dossie_compartilhado,
+    copy_guide_compartilhado,
+    encerrou_por,
+  };
 }
 
 export type { EventoPipeline, No, ResultadoPipeline };

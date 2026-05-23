@@ -128,7 +128,7 @@ export function Submit() {
     if (form.nome_solucao.trim().length < 2) return 'nome_solucao';
     if (form.descricao_curta.trim().length < 10) return 'descricao_curta';
     if (form.dor_e_evidencia.trim().length < 20) return 'dor_e_evidencia';
-    if (form.publico_alvo.trim().length < 5) return 'publico_alvo';
+    if (form.publico_alvo.trim().length < 5 || form.publico_alvo.trim().length > 600) return 'publico_alvo';
     if (form.diferencial_moat.trim().length < 10) return 'diferencial_moat';
     if (form.concorrentes.trim().length < 3) return 'concorrentes';
     if (form.tam_aproximado.trim().length < 1) return 'tam_aproximado';
@@ -171,7 +171,7 @@ export function Submit() {
     <div className="relative h-full overflow-y-auto bg-canvas">
       <div className="pointer-events-none absolute inset-x-0 top-0 h-[420px] bg-aurora-radial" />
 
-      <div className="relative mx-auto flex w-full max-w-5xl flex-col gap-10 px-8 pb-20 pt-14">
+      <div className="relative mx-auto flex w-full max-w-5xl flex-col gap-8 px-4 pb-12 pt-8 md:gap-10 md:px-8 md:pb-20 md:pt-14">
         <header className="max-w-3xl">
           <p className="text-caption-uppercase text-primary-light">Beyond Agents · Aurora</p>
           <h1 className="mt-3 text-display-lg text-ink">Submeta sua ideia</h1>
@@ -188,25 +188,25 @@ export function Submit() {
               {carregandoDefaults ? 'Carregando defaults…' : 'Pode editar livremente antes de submeter'}
             </span>
           </div>
-          <div className="ml-auto flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 md:ml-auto">
             <button
               type="button"
               onClick={() => prepreencher('edtech')}
-              className="rounded-md bg-surface-strong px-3 py-1.5 text-caption-uppercase text-ink ring-1 ring-hairline-strong hover:bg-primary hover:text-on-primary"
+              className="rounded-md bg-surface-strong px-2.5 py-1 text-[10px] uppercase tracking-wide text-ink ring-1 ring-hairline-strong hover:bg-primary hover:text-on-primary sm:text-caption-uppercase md:px-3 md:py-1.5"
             >
               Erudio · EdTech
             </button>
             <button
               type="button"
               onClick={() => prepreencher('healthtech')}
-              className="rounded-md bg-surface-strong px-3 py-1.5 text-caption-uppercase text-ink ring-1 ring-hairline-strong hover:bg-primary hover:text-on-primary"
+              className="rounded-md bg-surface-strong px-2.5 py-1 text-[10px] uppercase tracking-wide text-ink ring-1 ring-hairline-strong hover:bg-primary hover:text-on-primary sm:text-caption-uppercase md:px-3 md:py-1.5"
             >
               MedFlow · HealthTech
             </button>
             <button
               type="button"
               onClick={limpar}
-              className="rounded-md px-3 py-1.5 text-caption-uppercase text-muted hover:text-ink"
+              className="rounded-md px-2.5 py-1 text-[10px] uppercase tracking-wide text-muted hover:text-ink sm:text-caption-uppercase md:px-3 md:py-1.5"
             >
               Limpar
             </button>
@@ -272,13 +272,14 @@ export function Submit() {
               />
             </Campo>
 
-            <Campo label="Pra quem é (público-alvo)" obrigatorio>
-              <input
-                type="text"
+            <Campo label="Pra quem é (público-alvo)" obrigatorio dica="Até 600 caracteres">
+              <textarea
                 value={form.publico_alvo}
                 onChange={(e) => set('publico_alvo', e.target.value)}
                 placeholder="Ex: Coordenadores de residência médica em hospitais-escola com 100+ residentes"
-                className={`${inputBase} ${campoComErro === 'publico_alvo' ? errClass : ''}`}
+                rows={3}
+                maxLength={600}
+                className={`${inputBase} resize-none ${campoComErro === 'publico_alvo' ? errClass : ''}`}
               />
             </Campo>
 
@@ -418,7 +419,7 @@ function Bloco({
   children: React.ReactNode;
 }) {
   return (
-    <section className="rounded-lg border border-hairline bg-surface-card p-6">
+    <section className="rounded-lg border border-hairline bg-surface-card p-4 md:p-6">
       <div className="mb-5 flex items-baseline gap-3">
         <span className="text-caption-uppercase text-primary-light">{numero}</span>
         <h2 className="text-display-sm text-ink">{titulo}</h2>

@@ -47,8 +47,11 @@ export async function submitForm(form: FormSimplificado): Promise<SubmissionResp
     body: JSON.stringify({ form_simplificado: form }),
   });
   if (!r.ok) {
-    const erro = await parseJson<{ erro?: string }>(r, 'submitForm').catch(() => ({ erro: `http ${r.status}` }));
-    throw new Error(erro.erro ?? `http ${r.status}`);
+    const erro = await parseJson<{ erro?: string; detalhes?: unknown }>(r, 'submitForm').catch(() => ({
+      erro: `http ${r.status}`,
+    }));
+    const msg = erro.erro ?? `http ${r.status}`;
+    throw new Error(erro.detalhes ? `${msg}: ${JSON.stringify(erro.detalhes)}` : msg);
   }
   return parseJson<SubmissionRespostaApi>(r, 'submitForm');
 }

@@ -1,22 +1,44 @@
 /**
- * Criador de LP — tool determinística (mock).
+ * Criador de LP — Leandro LP (LLM) + fallback pra pool de fixtures.
  *
- * Escolhe 1 das 6 LPs pré-feitas do pool em src/fixtures/lps/, injeta
- * HEADLINE/SUBHEAD/CTA, devolve HTML + data URL pra iframe.
+ * Caminho principal:
+ *   `gerarLpComLLM()` chama o agente Leandro (Sonnet 4.5) com Copy Guide como
+ *   contexto e devolve HTML completo standalone.
  *
- * Exposto de DUAS formas:
- *   - `gerarLp()` — função pura, usada pelo pipeline-no.ts (controle total de tipos)
- *   - `criadorLpTool` — wrapper Mastra, aparece no Studio
+ * Fallback (mantido pra robustez de pitch):
+ *   `gerarLp()` escolhe 1 das 12 LPs fixas em src/fixtures/lps/ (6 HealthTech
+ *   + 6 Erudio), injeta HEADLINE/SUBHEAD/CTA e devolve. Usado quando a chamada
+ *   LLM falha (timeout, rate limit, HTML inválido).
+ *
+ * Exposto:
+ *   - `gerarLpComLLM()` — função async, caminho principal do pipeline
+ *   - `gerarLp()`       — função pura síncrona, fallback + Mastra Studio
+ *   - `criadorLpTool`   — wrapper Mastra do `gerarLp`
  */
 import { createTool } from '@mastra/core/tools';
 import { z } from 'zod';
 import { readFileSync, existsSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { callAgent } from '../lib/anthropic-client.js';
+import type { CopyGuide } from '../lib/tipos.js';
 
 const FIXTURES_DIR = resolve(dirname(fileURLToPath(import.meta.url)), '..', 'fixtures');
 const LPS_DIR = resolve(FIXTURES_DIR, 'lps');
 const LP_INDEX_PATH = resolve(FIXTURES_DIR, 'lp-index.json');
+const AGENTS_DIR = resolve(dirname(fileURLToPath(import.meta.url)), '..', 'agents');
+
+function loadAgentPrompt(nome: string): string {
+  const raw = readFileSync(resolve(AGENTS_DIR, nome, 'prompt.md'), 'utf-8');
+  const idx = raw.split('\n').findIndex((l) => l.trim() === '---');
+  return idx === -1 ? raw.trim() : raw.split('\n').slice(idx + 1).join('\n').trim();
+}
+
+let _promptLeandro: string | null = null;
+function getPromptLeandro(): string {
+  if (_promptLeandro === null) _promptLeandro = loadAgentPrompt('leandro-lp');
+  return _promptLeandro;
+}
 
 interface LpIndexEntry {
   id: string;
@@ -102,6 +124,89 @@ export function gerarLp(input: GerarLpInput): GerarLpOutput {
     html,
     preview_url: dataUrl,
   };
+}
+
+export interface GerarLpComLLMInput {
+  hipotese: { titulo: string; publico_alvo: string; angulo: string };
+  headline_sugerida: string;
+  subhead_sugerida: string;
+  cta_sugerido: string;
+  nome_solucao: string;
+  descricao_curta: string;
+  vertical: string;
+  copy_guide: CopyGuide | null;
+  run_id?: string;
+  signal?: AbortSignal;
+}
+
+function htmlParecValido(html: string): boolean {
+  const trimmed = html.trim().toLowerCase();
+  return (
+    trimmed.startsWith('<!doctype html') ||
+    trimmed.startsWith('<html') ||
+    trimmed.includes('</html>')
+  );
+}
+
+/**
+ * Leandro LP via LLM — caminho principal.
+ *
+ * Recebe contexto da hipótese + Copy Guide da Beatriz, gera HTML standalone
+ * completo via Sonnet 4.5. Em caso de falha (timeout, abort, rate limit,
+ * HTML claramente inválido), cai pro fallback `gerarLp()` (pool de fixtures).
+ *
+ * O pipeline **nunca trava** por culpa do Leandro — a LP sempre vem, mesmo
+ * que mockada.
+ */
+export async function gerarLpComLLM(input: GerarLpComLLMInput): Promise<GerarLpOutput> {
+  const userInput = {
+    vertical: input.vertical,
+    hipotese: input.hipotese,
+    headline_sugerida: input.headline_sugerida,
+    subhead_sugerida: input.subhead_sugerida,
+    cta_sugerido: input.cta_sugerido,
+    nome_solucao: input.nome_solucao,
+    descricao_curta: input.descricao_curta,
+    copy_guide: input.copy_guide,
+  };
+  const userPrompt = `Gere a landing page conforme seu system prompt. Devolva APENAS o HTML completo standalone, começando com <!DOCTYPE html>. Sem markdown, sem prosa antes ou depois.\n\n${JSON.stringify(userInput, null, 2)}`;
+
+  try {
+    const html = await callAgent({
+      agente: 'leandro-lp',
+      modelo: 'claude-sonnet-4-5',
+      system: getPromptLeandro(),
+      user: userPrompt,
+      max_tokens: 8192,
+      temperature: 0.7,
+      timeout_ms: 90_000,
+      run_id: input.run_id,
+      signal: input.signal,
+    });
+    if (!htmlParecValido(html)) {
+      throw new Error('Leandro: output não parece HTML válido.');
+    }
+    const lpId = `lp-leandro-${Date.now().toString(36)}`;
+    const dataUrl = `data:text/html;charset=utf-8;base64,${Buffer.from(html, 'utf-8').toString('base64')}`;
+    return {
+      lp_id: lpId,
+      angulo: input.hipotese.angulo,
+      publico: input.hipotese.publico_alvo,
+      html,
+      preview_url: dataUrl,
+    };
+  } catch (err) {
+    console.warn(
+      `[leandro-lp] falha (${err instanceof Error ? err.message : String(err)}) — fallback pro pool de fixtures.`,
+    );
+    return gerarLp({
+      hipotese: `${input.hipotese.titulo} — ${input.hipotese.publico_alvo} — ${input.hipotese.angulo}`,
+      headline: input.headline_sugerida,
+      subhead: input.subhead_sugerida,
+      cta: input.cta_sugerido,
+      vertical: input.vertical,
+    });
+  }
 }
 
 const inputSchema = z.object({

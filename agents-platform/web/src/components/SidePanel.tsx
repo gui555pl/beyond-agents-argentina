@@ -12,7 +12,7 @@ import { useStore } from '../lib/store';
 import type { No, RespostaPersona } from '../lib/tipos';
 import { PreviewModal } from './PreviewModal';
 
-type Tab = 'lp' | 'ads' | 'swarm' | 'metricas' | 'aurora';
+type Tab = 'lp' | 'ads' | 'swarm' | 'metricas' | 'aurora' | 'analise';
 
 const TABS: Array<{ id: Tab; rotulo: string }> = [
   { id: 'lp', rotulo: 'LP' },
@@ -20,6 +20,7 @@ const TABS: Array<{ id: Tab; rotulo: string }> = [
   { id: 'swarm', rotulo: 'Swarm' },
   { id: 'metricas', rotulo: 'Métricas' },
   { id: 'aurora', rotulo: 'Aurora' },
+  { id: 'analise', rotulo: 'Análise' },
 ];
 
 export function SidePanel() {
@@ -68,6 +69,7 @@ export function SidePanel() {
         {tab === 'swarm' && <TabSwarm no={no} />}
         {tab === 'metricas' && <TabMetricas no={no} />}
         {tab === 'aurora' && <TabAurora no={no} />}
+        {tab === 'analise' && <TabAnalise no={no} />}
       </div>
     </div>
   );
@@ -474,6 +476,115 @@ function TabAurora({ no }: { no: No }) {
             </ul>
           </div>
         )}
+    </div>
+  );
+}
+
+function TabAnalise({ no }: { no: No }) {
+  const cg = no.copy_guide;
+  if (!cg) {
+    return (
+      <Vazio>
+        Copy Guide indisponível (Beatriz não rodou neste nó ou caiu no fallback determinístico).
+      </Vazio>
+    );
+  }
+
+  return (
+    <div className="space-y-4 p-5">
+      <Card titulo="ICP — Ideal Customer Profile">
+        <Linha label="Demográfico">{cg.icp.demografico}</Linha>
+        <Linha label="Psicográfico">{cg.icp.psicografico}</Linha>
+        <Linha label="Nível de consciência" mono>
+          {cg.icp.nivel_consciencia}
+        </Linha>
+      </Card>
+
+      <Card titulo="JTBD — Jobs To Be Done">
+        <Linha label="Funcional">{cg.jtbd.funcional}</Linha>
+        <Linha label="Emocional">{cg.jtbd.emocional}</Linha>
+        <Linha label="Social">{cg.jtbd.social}</Linha>
+      </Card>
+
+      <Card titulo="Value Proposition">
+        <Linha label="Headline">{cg.value_proposition.headline}</Linha>
+        <Linha label="Subhead">{cg.value_proposition.subheadline}</Linha>
+        <Linha label="UVP única">{cg.value_proposition.uvp}</Linha>
+      </Card>
+
+      <Card titulo="Tom de voz">
+        <Linha label="Personalidade">{cg.tone_of_voice.personalidade}</Linha>
+        <Linha label="Register" mono>
+          {cg.tone_of_voice.register}
+        </Linha>
+        {cg.tone_of_voice.dos.length > 0 && (
+          <Lista label="Faça" itens={cg.tone_of_voice.dos} cor="text-success" />
+        )}
+        {cg.tone_of_voice.donts.length > 0 && (
+          <Lista label="Não faça" itens={cg.tone_of_voice.donts} cor="text-danger" />
+        )}
+      </Card>
+
+      <Card titulo="Pain — Gain">
+        {cg.pain_gain.dores.length > 0 && (
+          <Lista label="Dores" itens={cg.pain_gain.dores} cor="text-danger" />
+        )}
+        {cg.pain_gain.ganhos.length > 0 && (
+          <Lista label="Ganhos" itens={cg.pain_gain.ganhos} cor="text-success" />
+        )}
+      </Card>
+
+      <Card titulo="PAS — Problem, Agitation, Solution">
+        <Linha label="Problema">{cg.pas.problema}</Linha>
+        <Linha label="Agitação">{cg.pas.agitacao}</Linha>
+        <Linha label="Solução">{cg.pas.solucao}</Linha>
+      </Card>
+
+      <p className="px-1 text-caption text-muted-soft">
+        Copy Guide produzido pela Beatriz na raiz da árvore e compartilhado com este nó como
+        contexto pro Leandro LP.
+      </p>
+    </div>
+  );
+}
+
+function Card({ titulo, children }: { titulo: string; children: React.ReactNode }) {
+  return (
+    <div className="rounded-lg border border-hairline bg-surface-card p-4">
+      <div className="text-caption-uppercase text-muted">{titulo}</div>
+      <div className="mt-3 space-y-2.5 text-caption">{children}</div>
+    </div>
+  );
+}
+
+function Linha({
+  label,
+  children,
+  mono,
+}: {
+  label: string;
+  children: React.ReactNode;
+  mono?: boolean;
+}) {
+  return (
+    <div>
+      <div className="text-caption-uppercase text-muted-soft">{label}</div>
+      <div className={`mt-1 text-body-strong ${mono ? 'font-mono text-ink' : ''}`}>{children}</div>
+    </div>
+  );
+}
+
+function Lista({ label, itens, cor }: { label: string; itens: string[]; cor: string }) {
+  return (
+    <div>
+      <div className="text-caption-uppercase text-muted-soft">{label}</div>
+      <ul className="mt-1 space-y-1">
+        {itens.map((it, i) => (
+          <li key={i} className={`text-body-strong ${cor}/90`}>
+            · {it}
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

@@ -3,29 +3,29 @@
  * (Arquitetura - Autovalidador de Ideias §5, com Gestor de Tráfego restaurado).
  *
  * Ordem dos 7 agentes (o Orquestrador é supervisor, não entra na espinha):
- *   1. Buscador / Benchmark  — agente nº 3 do inventário. Determinístico.
- *                              Dossiê pré-fabricado por vertical (zero token).
+ *   1. Beatriz (Benchmark + Copy Guide) — agente nº 3 do inventário. LLM Sonnet.
+ *                              Analisa concorrentes + gera dossiê + Copy Guide
+ *                              estratégico (ICP, JTBD, PAS, Tone of Voice).
+ *                              Roda 1× na raiz; copy_guide é compartilhado.
+ *                              Fallback: dossiê hardcoded por vertical.
  *   2. Validador Aurora      — agente nº 2. LLM Haiku. Aplica o scorecard de
  *                              16 critérios e pode disparar VETO regulatório
  *                              (poda antecipada, sem rodar 3-7).
- *   3. Criador de LP         — skill do agente nº 4 (Criador de Assets).
- *                              Hoje é mock determinístico (fixture HTML).
- *   4. Criador de Ads        — outra skill do mesmo Criador de Assets. Mock.
+ *   3. Leandro LP            — agente nº 4 ("Criador de Assets"). LLM Sonnet.
+ *                              Gera HTML completo standalone usando o
+ *                              Copy Guide como contexto. Fallback: pool de
+ *                              fixtures rotativos.
+ *   4. Criador de Ads        — skill auxiliar. Mock determinístico (3 cards).
  *   5. Gestor de Tráfego     — agente nº 5. Determinístico, zero token.
  *                              Faz o handoff visual LP-deployada → Swarm.
  *   6. Swarm                 — agente nº 6 ("Miro Fish" no inventário).
- *                              LLM Haiku, N personas em paralelo (não
- *                              determinístico, feedback dinâmico).
+ *                              LLM Haiku, N personas em paralelo.
  *   7. Análise de Performance — agente nº 7. Determinística, thresholds.
  *                              Devolve veredito ao Orquestrador.
  *
- * O Orquestrador (agente nº 1) supervisiona toda a execução e decide
- * expandir / refinar / podar / promover ao fim de cada nó — ver
- * `workflows/orquestrador.ts` e `workflows/explorar-arvore.ts`.
- *
- * Buscador e Validador podem ser forçados a determinístico via
- * `DEMO_FAST_VALIDATION=true` (default: false). Hoje, mesmo no default, o
- * Buscador já é determinístico para economizar tokens (era ~5k/run).
+ * Beatriz e Validador podem ser forçados a determinístico via
+ * `DEMO_FAST_VALIDATION=true` (default: false). Leandro pode cair para o pool
+ * de fixtures automaticamente em caso de falha LLM — robustez de pitch.
  *
  * Cada etapa emite eventos no listener — alimentam o stream do CLI/UI.
  */
@@ -33,12 +33,13 @@ import { readFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { callAgent, extractJson } from '../lib/anthropic-client.js';
-import { gerarLp } from '../tools/criador-lp.js';
+import { gerarLpComLLM } from '../tools/criador-lp.js';
 import { gerarAds } from '../tools/criador-ads.js';
 import { runSwarm, type Persona } from '../tools/miro-fish.js';
 import { analisarPerformance } from '../tools/performance.js';
 import type {
   CapsPalco,
+  CopyGuide,
   DossieBuscador,
   EventoPipeline,
   Listener,
@@ -59,6 +60,7 @@ function loadAgentPrompt(nome: string): string {
 }
 
 const PROMPT_VALIDADOR = loadAgentPrompt('validador-aurora');
+const PROMPT_BEATRIZ = loadAgentPrompt('beatriz');
 
 function loadPersonas(arquivo: string): Persona[] {
   return JSON.parse(readFileSync(resolve(FIXTURES_DIR, arquivo), 'utf-8')) as Persona[];
@@ -86,6 +88,7 @@ export interface RodarPipelineNoParams {
   no: No;
   submissao: SubmissaoAurora;
   dossie_compartilhado: DossieBuscador | null;
+  copy_guide_compartilhado: CopyGuide | null;
   caps: CapsPalco;
   emit: Listener;
   run_id?: string;
@@ -95,6 +98,7 @@ export interface RodarPipelineNoParams {
 export interface RodarPipelineNoResultado {
   no: No;
   dossie_para_compartilhar: DossieBuscador | null;
+  copy_guide_para_compartilhar: CopyGuide | null;
 }
 
 async function rodarValidador(
@@ -124,18 +128,46 @@ async function rodarValidador(
 }
 
 /**
- * Buscador determinístico — não chama LLM para economizar tokens.
+ * Beatriz — benchmark competitivo + Copy Guide estratégico via LLM.
  *
- * Como o pipeline já usa LPs/Ads mockados (fixtures), faz sentido manter o
- * Buscador igualmente determinístico — o dossiê serve só para alimentar o
- * Validador e a UI; numa demo a confirmação automatizada de concorrentes
- * agrega pouco frente ao custo de tokens.
+ * Substitui o Buscador determinístico antigo. Roda 1× na raiz da árvore;
+ * o copy_guide retornado é compartilhado entre todos os nós como contexto
+ * pro Leandro LP gerar landing pages alinhadas à estratégia.
  *
- * Mantemos um delay artificial para o usuário "ver" o agente rodando.
+ * Sem web fetch real (escolha consciente): analisa apenas formulário Aurora
+ * + dossiê snapshot da vertical (que carregamos como contexto). Retorna
+ * {dossie, copy_guide} estruturado.
+ *
+ * Fallback automático em caso de falha (timeout, rate limit, JSON inválido):
+ * cai no `gerarDossieDeterministico()` + `copy_guide = null`.
  */
-async function rodarBuscador(submissao: SubmissaoAurora): Promise<DossieBuscador> {
-  await new Promise((resolve) => setTimeout(resolve, 1200 + Math.random() * 600));
-  return gerarDossieDeterministico(submissao);
+async function rodarBeatriz(
+  submissao: SubmissaoAurora,
+  runId?: string,
+  signal?: AbortSignal,
+): Promise<{ dossie: DossieBuscador; copy_guide: CopyGuide | null }> {
+  const snapshotVertical = DOSSIES_POR_VERTICAL[submissao.solucao.vertical] ?? null;
+  const input = {
+    submissao_aurora: submissao,
+    snapshot_tendencias_vertical: snapshotVertical,
+  };
+  const user = `Analise a submissão abaixo seguindo o seu system prompt. Cruze com o snapshot de tendências da vertical fornecido. Devolva APENAS o JSON completo (dossie_buscador + copy_guide).\n\n${JSON.stringify(input, null, 2)}`;
+  const raw = await callAgent({
+    agente: 'beatriz',
+    modelo: 'claude-sonnet-4-5',
+    system: PROMPT_BEATRIZ,
+    user,
+    max_tokens: 4096,
+    temperature: 0.3,
+    timeout_ms: 60_000,
+    run_id: runId,
+    signal,
+  });
+  const parsed = extractJson<{ dossie_buscador: DossieBuscador; copy_guide: CopyGuide }>(raw);
+  if (!parsed.dossie_buscador || !parsed.copy_guide) {
+    throw new Error('Beatriz: output JSON sem dossie_buscador ou copy_guide.');
+  }
+  return { dossie: parsed.dossie_buscador, copy_guide: parsed.copy_guide };
 }
 
 /**
@@ -342,6 +374,7 @@ export async function rodarPipelineNo({
   no,
   submissao,
   dossie_compartilhado,
+  copy_guide_compartilhado,
   caps,
   emit,
   run_id,
@@ -350,16 +383,33 @@ export async function rodarPipelineNo({
   emit({ tipo: 'estado_mudou', no_id: no.id, estado: 'validando' });
   no.estado = 'validando';
 
-  // 1. Buscador / Benchmark (determinístico — dossiê por vertical).
-  // Roda só na raiz; nós filhos herdam o dossiê via `dossie_compartilhado`.
+  // 1. Beatriz — benchmark + Copy Guide (LLM Sonnet). Roda 1× na raiz; nós
+  // filhos herdam dossiê + copy_guide via `*_compartilhado`. Em caso de
+  // falha LLM (timeout, rate limit, JSON inválido), fallback automático
+  // pro dossiê determinístico hardcoded + copy_guide=null.
   let dossie = dossie_compartilhado;
+  let copyGuide = copy_guide_compartilhado;
   if (!dossie) {
-    dossie = DEMO_FAST_VALIDATION
-      ? gerarDossieDeterministico(submissao)
-      : await rodarBuscador(submissao);
+    if (DEMO_FAST_VALIDATION) {
+      dossie = gerarDossieDeterministico(submissao);
+      copyGuide = null;
+    } else {
+      try {
+        const beatrizOut = await rodarBeatriz(submissao, run_id, signal);
+        dossie = beatrizOut.dossie;
+        copyGuide = beatrizOut.copy_guide;
+      } catch (err) {
+        console.warn(
+          `[beatriz] falha (${err instanceof Error ? err.message : String(err)}) — fallback pro dossiê determinístico.`,
+        );
+        dossie = gerarDossieDeterministico(submissao);
+        copyGuide = null;
+      }
+    }
     emit({ tipo: 'buscador_pronto', no_id: no.id });
   }
   no.dossie = dossie;
+  if (copyGuide) no.copy_guide = copyGuide;
 
   // 2. Validador Aurora — replica a análise do Comitê Aurora sobre os 16
   // critérios. VETO regulatório aqui poda imediatamente, sem 3-7.
@@ -382,18 +432,34 @@ export async function rodarPipelineNo({
     no.finalizado_em = new Date().toISOString();
     emit({ tipo: 'estado_mudou', no_id: no.id, estado: 'podada' });
     emit({ tipo: 'no_finalizado', no: snapshotNoParaUi(no) });
-    return { no, dossie_para_compartilhar: dossie };
+    return {
+      no,
+      dossie_para_compartilhar: dossie,
+      copy_guide_para_compartilhar: copyGuide,
+    };
   }
 
-  // 3. Criador de LP (agente nº 4 da arquitetura — "Criador de Assets")
+  // 3. Leandro LP (agente nº 4 da arquitetura — "Criador de Assets").
+  // LLM Sonnet gera HTML completo standalone usando o Copy Guide como
+  // contexto. Em caso de falha LLM (timeout, abort, HTML inválido),
+  // fallback automático para o pool de fixtures rotativos.
   emit({ tipo: 'estado_mudou', no_id: no.id, estado: 'gerando' });
   no.estado = 'gerando';
-  const lpRes = gerarLp({
-    hipotese: `${no.hipotese.titulo} — ${no.hipotese.publico_alvo} — ${no.hipotese.angulo}`,
-    headline: no.hipotese.lp_headline_sugerida,
-    subhead: no.hipotese.lp_subhead_sugerida,
-    cta: no.hipotese.lp_cta_sugerido,
+  const lpRes = await gerarLpComLLM({
+    hipotese: {
+      titulo: no.hipotese.titulo,
+      publico_alvo: no.hipotese.publico_alvo,
+      angulo: no.hipotese.angulo,
+    },
+    headline_sugerida: no.hipotese.lp_headline_sugerida,
+    subhead_sugerida: no.hipotese.lp_subhead_sugerida,
+    cta_sugerido: no.hipotese.lp_cta_sugerido,
+    nome_solucao: submissao.solucao.nome,
+    descricao_curta: submissao.solucao.descricao_50_chars,
     vertical: submissao.solucao.vertical,
+    copy_guide: copyGuide,
+    run_id,
+    signal,
   });
   no.lp = lpRes;
   emit({
@@ -460,5 +526,9 @@ export async function rodarPipelineNo({
 
   no.finalizado_em = new Date().toISOString();
   emit({ tipo: 'no_finalizado', no: snapshotNoParaUi(no) });
-  return { no, dossie_para_compartilhar: dossie };
+  return {
+    no,
+    dossie_para_compartilhar: dossie,
+    copy_guide_para_compartilhar: copyGuide,
+  };
 }

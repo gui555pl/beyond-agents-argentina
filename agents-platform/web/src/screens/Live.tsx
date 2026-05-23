@@ -41,8 +41,19 @@ export function Live() {
   const nomeSolucao = useStore((s) => s.nomeSolucao);
   const hidratar = useStore((s) => s.hidratarRun);
 
+  const selecionadoId = useStore((s) => s.selecionadoId);
+
   const [hidratando, setHidratando] = useState(false);
   const [erroHidratacao, setErroHidratacao] = useState<string | null>(null);
+  const [painelMobileAberto, setPainelMobileAberto] = useState(false);
+
+  // Abre o painel automaticamente quando o usuário seleciona um nó no mobile.
+  useEffect(() => {
+    if (!selecionadoId) return;
+    if (typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches) {
+      setPainelMobileAberto(true);
+    }
+  }, [selecionadoId]);
 
   // Hidratação inicial (quando o usuário chega via URL direta ou recarrega a página)
   useEffect(() => {
@@ -115,12 +126,12 @@ export function Live() {
 
   return (
     <div className="flex h-full flex-col bg-canvas">
-      <header className="flex items-center justify-between border-b border-hairline px-8 py-4">
+      <header className="flex flex-col gap-3 border-b border-hairline px-4 py-3 md:flex-row md:items-center md:justify-between md:px-8 md:py-4">
         <div className="flex items-center gap-4">
-          <div>
+          <div className="min-w-0">
             <p className="text-caption-uppercase text-primary-light">Beyond Agents · {tituloFase}</p>
-            <h1 className="mt-1 flex items-center gap-3 text-title-md text-ink">
-              <span>{nomeSolucao ?? submissao.solucao.nome ?? '—'}</span>
+            <h1 className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-title-md text-ink">
+              <span className="truncate">{nomeSolucao ?? submissao.solucao.nome ?? '—'}</span>
               <span
                 className={`rounded-pill px-2.5 py-0.5 text-caption-uppercase ${corVertical.bg} ${corVertical.text}`}
               >
@@ -133,29 +144,31 @@ export function Live() {
           </div>
         </div>
 
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-3 overflow-x-auto md:gap-6">
           <Indicador rotulo="nós" valor={nos.length.toString()} />
           <Indicador rotulo="LPs" valor={nos.filter((n) => n.lp).length.toString()} />
           <Indicador rotulo="personas" valor={personasTotal.toString()} />
           <Indicador
             rotulo="podadas"
             valor={nos.filter((n) => n.estado === 'podada' || n.estado === 'timeout').length.toString()}
+            className="hidden sm:flex"
           />
           <Indicador
             rotulo="promovidas"
             valor={nos.filter((n) => n.estado === 'promovida').length.toString()}
+            className="hidden sm:flex"
           />
           {fase === 'live' && status !== 'queued' && (
             <button
               onClick={onCancelar}
-              className="rounded-md border border-hairline-strong bg-surface-card px-3 py-1.5 text-button text-body-strong transition hover:border-danger/60 hover:text-ink"
+              className="shrink-0 rounded-md border border-hairline-strong bg-surface-card px-2 py-1 text-caption-uppercase text-body-strong transition hover:border-danger/60 hover:text-ink md:px-3 md:py-1.5 md:text-button"
             >
               Cancelar
             </button>
           )}
           <button
             onClick={onNovaSubmissao}
-            className="rounded-md border border-hairline-strong bg-surface-card px-3 py-1.5 text-button text-body-strong transition hover:border-primary/60 hover:text-ink"
+            className="shrink-0 rounded-md border border-hairline-strong bg-surface-card px-2 py-1 text-caption-uppercase text-body-strong transition hover:border-primary/60 hover:text-ink md:px-3 md:py-1.5 md:text-button"
           >
             Nova validação
           </button>
@@ -179,7 +192,7 @@ export function Live() {
         <>
           <PipelineStepper />
           <div className="flex flex-1 overflow-hidden">
-            <main className="flex flex-1 flex-col bg-canvas">
+            <main className="relative flex flex-1 flex-col bg-canvas">
               <div className="relative flex-1">
                 <div className="pointer-events-none absolute inset-0 bg-aurora-radial-soft" />
                 <div className="relative h-full">
@@ -187,11 +200,37 @@ export function Live() {
                 </div>
               </div>
               <EventLog />
+              {selecionadoId && (
+                <button
+                  type="button"
+                  onClick={() => setPainelMobileAberto(true)}
+                  className="absolute bottom-16 right-4 z-30 rounded-pill bg-primary px-4 py-2.5 text-button text-on-primary shadow-lg transition hover:bg-primary-active md:hidden"
+                >
+                  Ver detalhes
+                </button>
+              )}
             </main>
-            <aside className="flex w-[440px] flex-col border-l border-hairline bg-canvas-soft">
+            <aside className="hidden w-[440px] flex-col border-l border-hairline bg-canvas-soft md:flex">
               <SidePanel />
             </aside>
           </div>
+          {painelMobileAberto && (
+            <div className="fixed inset-0 z-40 flex flex-col bg-canvas-soft md:hidden">
+              <div className="flex items-center justify-between border-b border-hairline px-4 py-3">
+                <span className="text-caption-uppercase text-muted">Detalhes do nó</span>
+                <button
+                  type="button"
+                  onClick={() => setPainelMobileAberto(false)}
+                  className="rounded-md border border-hairline-strong bg-surface-card px-3 py-1 text-caption-uppercase text-body-strong hover:text-ink"
+                >
+                  Fechar ✕
+                </button>
+              </div>
+              <div className="flex-1 overflow-hidden">
+                <SidePanel />
+              </div>
+            </div>
+          )}
         </>
       )}
 
@@ -200,9 +239,9 @@ export function Live() {
   );
 }
 
-function Indicador({ rotulo, valor }: { rotulo: string; valor: string }) {
+function Indicador({ rotulo, valor, className }: { rotulo: string; valor: string; className?: string }) {
   return (
-    <div className="flex flex-col items-end leading-tight">
+    <div className={`flex shrink-0 flex-col items-end leading-tight ${className ?? ''}`}>
       <span className="text-caption-uppercase text-muted">{rotulo}</span>
       <span className="font-mono text-title-md text-ink">{valor}</span>
     </div>

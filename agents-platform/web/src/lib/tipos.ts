@@ -42,6 +42,42 @@ export interface MetricasPerformance {
   motivo_veredito: string;
 }
 
+/**
+ * Copy Guide produzido pela Beatriz — espelha o tipo do backend.
+ */
+export interface CopyGuide {
+  icp: {
+    demografico: string;
+    psicografico: string;
+    nivel_consciencia: string;
+  };
+  jtbd: {
+    funcional: string;
+    emocional: string;
+    social: string;
+  };
+  pain_gain: {
+    dores: string[];
+    ganhos: string[];
+  };
+  pas: {
+    problema: string;
+    agitacao: string;
+    solucao: string;
+  };
+  tone_of_voice: {
+    personalidade: string;
+    register: string;
+    dos: string[];
+    donts: string[];
+  };
+  value_proposition: {
+    headline: string;
+    subheadline: string;
+    uvp: string;
+  };
+}
+
 export interface OutputValidador {
   score_parcial_fit: number;
   veto: boolean;
@@ -103,6 +139,7 @@ export interface No {
   estado: EstadoNo;
   refinamentos_feitos: number;
   validador?: OutputValidador;
+  copy_guide?: CopyGuide;
   lp?: {
     lp_id: string;
     angulo: string;
