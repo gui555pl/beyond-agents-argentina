@@ -1,0 +1,159 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://beyond.aurora/validador/input.schema.json",
+  "title": "Input do Validador Aurora",
+  "description": "Payload que o Orquestrador envia ao Validador Aurora a cada nó da árvore de hipóteses. Composto pela submissão Aurora completa (formulário do founder), a hipótese específica do nó e o dossiê do Buscador.",
+  "type": "object",
+  "required": ["submissao_aurora", "hipotese_no_no", "dossie_buscador"],
+  "additionalProperties": false,
+  "properties": {
+    "submissao_aurora": {
+      "type": "object",
+      "description": "Formulário de submissão Aurora preenchido pelo founder. Estrutura idêntica à do formulário oficial da Aurora.",
+      "required": ["founders", "solucao", "progresso", "problema_mercado", "expectativas"],
+      "additionalProperties": false,
+      "properties": {
+        "founders": {
+          "type": "array",
+          "minItems": 1,
+          "description": "Lista de founders. Cada item carrega básico + background.",
+          "items": {
+            "type": "object",
+            "required": ["nome", "email"],
+            "additionalProperties": false,
+            "properties": {
+              "nome": { "type": "string" },
+              "telefone": { "type": "string" },
+              "email": { "type": "string", "format": "email" },
+              "genero": { "type": "string" },
+              "data_nascimento": { "type": "string" },
+              "cidade": { "type": "string" },
+              "redes_sociais": { "type": "string" },
+              "educacao": { "type": "string" },
+              "historico_trabalho": { "type": "string" },
+              "linkedin": { "type": "string" },
+              "conquistas": { "type": "string" }
+            }
+          }
+        },
+        "solucao": {
+          "type": "object",
+          "required": ["nome", "descricao_50_chars", "por_que_escolheu", "vertical"],
+          "additionalProperties": false,
+          "properties": {
+            "nome": { "type": "string" },
+            "descricao_50_chars": { "type": "string", "maxLength": 50 },
+            "por_que_escolheu": { "type": "string" },
+            "vertical": {
+              "type": "string",
+              "enum": ["legaltech", "edtech", "healthtech", "govtech", "outra"]
+            },
+            "pitch_deck_url": { "type": "string", "format": "uri" },
+            "video_demo_url": { "type": "string", "format": "uri" }
+          }
+        },
+        "progresso": {
+          "type": "object",
+          "required": [
+            "tempo_de_trabalho",
+            "cash_balance_e_burn_rate",
+            "projecao_faturamento",
+            "stack_tecnologico",
+            "reduz_custos_com_infra_beyond",
+            "mvp_em_4_semanas"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "tempo_de_trabalho": { "type": "string" },
+            "cash_balance_e_burn_rate": { "type": "string" },
+            "projecao_faturamento": { "type": "string" },
+            "stack_tecnologico": { "type": "string" },
+            "reduz_custos_com_infra_beyond": { "type": "boolean" },
+            "mvp_em_4_semanas": { "type": "string" }
+          }
+        },
+        "problema_mercado": {
+          "type": "object",
+          "required": [
+            "por_que_essa_ideia",
+            "dor_latente_e_evidencias",
+            "publico_problema_solucao",
+            "diferencial_moat",
+            "concorrentes_e_lacunas",
+            "tam_sam_som",
+            "escalabilidade_sem_custo_proporcional",
+            "canais_de_venda",
+            "barreira_legal_imediata"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "por_que_essa_ideia": { "type": "string" },
+            "dor_latente_e_evidencias": { "type": "string" },
+            "publico_problema_solucao": { "type": "string" },
+            "diferencial_moat": { "type": "string" },
+            "concorrentes_e_lacunas": { "type": "string" },
+            "tam_sam_som": { "type": "string" },
+            "escalabilidade_sem_custo_proporcional": { "type": "string" },
+            "canais_de_venda": { "type": "string" },
+            "barreira_legal_imediata": { "type": "boolean" }
+          }
+        },
+        "expectativas": {
+          "type": "object",
+          "required": ["convencimento", "areas_de_ajuda"],
+          "additionalProperties": false,
+          "properties": {
+            "convencimento": { "type": "string" },
+            "areas_de_ajuda": { "type": "string" }
+          }
+        }
+      }
+    },
+    "hipotese_no_no": {
+      "type": "string",
+      "description": "Hipótese específica do nó da árvore que o Orquestrador está avaliando. Ex.: 'Foco em MEIs do setor de alimentação, canal WhatsApp'. Para o nó raiz, é igual à ideia original."
+    },
+    "dossie_buscador": {
+      "type": "object",
+      "description": "Output do agente Buscador: validação e enriquecimento das afirmações do formulário.",
+      "required": [
+        "concorrentes_validados",
+        "concorrentes_omitidos_pelo_founder",
+        "tam_sam_som_validado",
+        "dores_confirmadas",
+        "tendencias"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "concorrentes_validados": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Concorrentes que o founder listou e que o Buscador confirmou existirem e serem relevantes."
+        },
+        "concorrentes_omitidos_pelo_founder": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Concorrentes relevantes que o Buscador encontrou e que NÃO estavam na lista do founder."
+        },
+        "tam_sam_som_validado": {
+          "type": "string",
+          "description": "Estimativa independente do Buscador para TAM/SAM/SOM, formato livre."
+        },
+        "dores_confirmadas": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Dores listadas pelo founder que o Buscador conseguiu confirmar com sinais externos."
+        },
+        "tendencias": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Tendências de mercado relevantes ao segmento da hipótese."
+        },
+        "auto_research_juridico": {
+          "type": "string",
+          "description": "Achados do auto-research jurídico do setor — usado especialmente para validar/refutar o campo barreira_legal_imediata."
+        }
+      }
+    }
+  }
+}

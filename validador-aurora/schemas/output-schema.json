@@ -1,0 +1,127 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://beyond.aurora/validador/output.schema.json",
+  "title": "Output do Validador Aurora",
+  "description": "Veredito do Validador Aurora para o nó. Devolve score parcial de fit estratégico, notas por critério, tags de tese, recomendação do Playbook, discrepâncias founder vs research e flag de veto regulatório.",
+  "type": "object",
+  "required": [
+    "score_parcial_fit",
+    "veto",
+    "criterios",
+    "tags",
+    "recomendacao_playbook",
+    "discrepancias_founder_vs_research"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "score_parcial_fit": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100,
+      "description": "Score 0-100 do fit estratégico. Soma ponderada das notas dos 16 critérios, normalizada para 100."
+    },
+    "veto": {
+      "type": "boolean",
+      "description": "True se o critério 10 (Risco Regulatório) recebeu nota 1 — poda imediata do nó."
+    },
+    "criterios": {
+      "type": "array",
+      "minItems": 16,
+      "maxItems": 16,
+      "description": "Avaliação dos 16 critérios do scorecard (12 gerais + 4 específicos Mercado/Inorgânico).",
+      "items": {
+        "type": "object",
+        "required": ["id", "nota", "peso_normalizado", "fonte", "justificativa"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "enum": [
+              "moat",
+              "alinhamento_tese",
+              "problema_real",
+              "tam_sam_som",
+              "escalabilidade_tecnologica",
+              "escalabilidade_publica_b2g",
+              "infra_beyond",
+              "velocidade_mvp",
+              "pesquisa_vs_vibe_coding",
+              "risco_regulatorio",
+              "conhecimento_interno",
+              "processo_comercial",
+              "perfil_founder",
+              "dono_da_briga",
+              "sinergia_operacional_cac",
+              "canais_de_venda"
+            ]
+          },
+          "nota": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10,
+            "description": "Nota 1-10 atribuída pelo Validador. Nota 1 no critério risco_regulatorio aciona VETO."
+          },
+          "peso_normalizado": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 30,
+            "description": "Peso reescalonado do critério (soma de todos os pesos = 100)."
+          },
+          "fonte": {
+            "type": "string",
+            "description": "Caminho do campo do formulário e/ou do dossiê que sustenta a nota. Ex.: 'formulario.problema_mercado.tam_sam_som + dossie.tam_sam_som_validado'."
+          },
+          "justificativa": {
+            "type": "string",
+            "description": "Justificativa curta (1-2 frases) explicando a nota. Estilo avaliador do Comitê: cita campo-fonte, sem hedge."
+          },
+          "veto": {
+            "type": "boolean",
+            "description": "Aplicável apenas ao critério risco_regulatorio. True quando há barreira jurídica que inviabiliza o modelo."
+          }
+        }
+      }
+    },
+    "tags": {
+      "type": "array",
+      "description": "Tags estruturadas de aderência às teses Aurora. Não pesam no score — alimentam a leitura visual do nó.",
+      "items": {
+        "type": "string",
+        "pattern": "^(vertical-(priorizada-(legaltech|edtech|healthtech|govtech)|fora-da-tese)|modelo-(b2b|b2g|b2c)|estagio-(ideacao|validacao|early-stage)|conveniencia-pessoas)$"
+      }
+    },
+    "recomendacao_playbook": {
+      "type": "string",
+      "enum": ["descartar", "validar", "prioridade"],
+      "description": "Recomendação derivada do score conforme cortes do Playbook de Seleção: <60 descartar, 60-80 validar, >80 prioridade. VETO força 'descartar'."
+    },
+    "discrepancias_founder_vs_research": {
+      "type": "array",
+      "description": "Pontos onde o que o founder afirmou diverge do que o Buscador validou. Sinal qualitativo importante para o Comitê.",
+      "items": {
+        "type": "object",
+        "required": ["campo", "founder", "research", "severidade"],
+        "additionalProperties": false,
+        "properties": {
+          "campo": {
+            "type": "string",
+            "description": "Caminho do campo no formulário que diverge. Ex.: 'problema_mercado.tam_sam_som'."
+          },
+          "founder": {
+            "type": "string",
+            "description": "O que o founder declarou."
+          },
+          "research": {
+            "type": "string",
+            "description": "O que o Buscador descobriu."
+          },
+          "severidade": {
+            "type": "string",
+            "enum": ["baixa", "media", "alta"],
+            "description": "Quanto a discrepância pesa no julgamento. Alta = founder errou por mais de 3x; média = 1.5x-3x; baixa = qualitativa."
+          }
+        }
+      }
+    }
+  }
+}

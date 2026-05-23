@@ -1,0 +1,3 @@
+- [Project — Contexto Aurora](project_aurora_context.md) — Aurora é BU de screening da Beyond; este agente alimenta o scorecard sem decidir investimento
+- [Reference — Playbook de Seleção](reference_playbook_selecao.md) — fonte oficial das regras do scorecard; mudanças vêm do time Aurora, não do modelo
+- [Feedback — Estilo de justificativa](feedback_estilo_justificativa.md) — justificativas curtas (1-2 frases), citam campo-fonte, sem hedge, tom de avaliador do Comitê
