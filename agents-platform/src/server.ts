@@ -120,14 +120,22 @@ const ORIGENS_PERMITIDAS = (process.env.ALLOWED_ORIGINS ?? 'http://localhost:517
   .split(',')
   .map((s) => s.trim())
   .filter(Boolean);
+/** Verifica se a origin é permitida (lista explícita + qualquer *.vercel.app). */
+function originPermitida(origin: string | undefined): boolean {
+  if (!origin) return true;
+  if (ORIGENS_PERMITIDAS.includes(origin)) return true;
+  if (ORIGENS_PERMITIDAS.includes('*')) return true;
+  // Previews e aliases Vercel mudam a cada deploy — aceita o domínio inteiro.
+  if (/^https:\/\/[\w.-]+\.vercel\.app$/.test(origin)) return true;
+  return false;
+}
+
 const corsOptions: cors.CorsOptions =
   ORIGENS_PERMITIDAS.includes('*')
     ? { origin: true }
     : {
         origin: (origin, callback) => {
-          // Permite requests sem origin (curl, health-check interno do Fly).
-          if (!origin) return callback(null, true);
-          if (ORIGENS_PERMITIDAS.includes(origin)) return callback(null, true);
+          if (originPermitida(origin)) return callback(null, true);
           return callback(new Error(`CORS bloqueado para origin ${origin}`));
         },
         credentials: false,
@@ -149,6 +157,8 @@ const submissionLimiter =
         limit: SUBMISSION_RATE_LIMIT,
         standardHeaders: 'draft-7',
         legacyHeaders: false,
+        // Erros de validação (400) não consomem cota — evita lock após retries acidentais.
+        skipFailedRequests: true,
         message: {
           erro: `Muitas submissões — aguarde 1 minuto (limite: ${SUBMISSION_RATE_LIMIT}/min por IP).`,
         },
@@ -226,6 +236,7 @@ app.get('/api/submissions/:id', (req, res) => {
     vertical: sub.vertical,
     email: sub.email,
     formSimplificado: sub.form_simplificado,
+    submissaoCompleta: sub.submissao_completa,
     hipoteseRaiz: sub.hipotese_raiz,
     criadoEm: sub.created_at,
     iniciadoEm: sub.started_at,

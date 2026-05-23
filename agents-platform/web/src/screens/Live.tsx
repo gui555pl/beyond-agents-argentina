@@ -69,7 +69,8 @@ export function Live() {
           nomeSolucao: info.nomeSolucao,
           status: info.status,
           queuePosition: info.queuePosition,
-          submissao: ((info.formSimplificado as Record<string, unknown>).submissao_completa as SubmissaoAurora) ??
+          submissao:
+            info.submissaoCompleta ??
             ({
               founders: [],
               solucao: { nome: info.nomeSolucao ?? '—', descricao_50_chars: '', por_que_escolheu: '', vertical: (info.vertical ?? 'outra') as SubmissaoAurora['solucao']['vertical'] },

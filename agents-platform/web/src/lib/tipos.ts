@@ -281,6 +281,7 @@ export interface SubmissionInfo {
   vertical: string | null;
   email: string | null;
   formSimplificado: Partial<FormSimplificado> | Record<string, unknown>;
+  submissaoCompleta?: SubmissaoAurora;
   hipoteseRaiz: string;
   criadoEm: number;
   iniciadoEm: number | null;

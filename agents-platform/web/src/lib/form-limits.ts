@@ -1,11 +1,14 @@
 import type { FormSimplificado } from './tipos';
 
-/** Limites alinhados com o backend em produção (publico_alvo legado = 300). */
+/**
+ * Limites espelhados em `agents-platform/src/lib/schemas.ts` (FormSimplificadoSchema).
+ * Fonte única no frontend — backend valida o mesmo contrato.
+ */
 export const FORM_LIMITS = {
   nome_solucao: 80,
   descricao_curta: 180,
   dor_e_evidencia: 2000,
-  publico_alvo: 300,
+  publico_alvo: 600,
   diferencial_moat: 800,
   concorrentes: 600,
   tam_aproximado: 300,
@@ -37,4 +40,16 @@ export function sanitizarFormParaEnvio(form: FormSimplificado): FormSimplificado
       : undefined,
     email: form.email?.trim() || undefined,
   };
+}
+
+/** Valida mínimos no payload já sanitizado (pós-clamp). */
+export function validarFormSanitizado(form: FormSimplificado): keyof FormSimplificado | null {
+  if (form.nome_solucao.length < 2) return 'nome_solucao';
+  if (form.descricao_curta.length < 10) return 'descricao_curta';
+  if (form.dor_e_evidencia.length < 20) return 'dor_e_evidencia';
+  if (form.publico_alvo.length < 5) return 'publico_alvo';
+  if (form.diferencial_moat.length < 10) return 'diferencial_moat';
+  if (form.concorrentes.length < 3) return 'concorrentes';
+  if (form.tam_aproximado.length < 1) return 'tam_aproximado';
+  return null;
 }

@@ -33,6 +33,20 @@ async function parseJson<T>(r: Response, contexto: string): Promise<T> {
   return (await r.json()) as T;
 }
 
+/** Pinga /api/health para acordar cold start do Render antes do submit. */
+export async function aquecerBackend(timeoutMs = 25_000): Promise<boolean> {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+  try {
+    const r = await fetch(`${API_BASE}/api/health`, { signal: ctrl.signal });
+    return r.ok;
+  } catch {
+    return false;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 export async function getFixture(vertical?: Vertical | 'healthtech' | 'edtech'): Promise<FixtureRes> {
   const url = vertical ? `${API_BASE}/api/fixture?vertical=${vertical}` : `${API_BASE}/api/fixture`;
   const r = await fetch(url);
@@ -55,7 +69,13 @@ export async function submitForm(form: FormSimplificado): Promise<SubmissionResp
     }));
     const msg = erro.erro ?? `http ${r.status}`;
     if (r.status === 429) {
-      throw new Error(msg || 'Muitas submissões em sequência — aguarde ~1 minuto e tente de novo.');
+      throw new Error(
+        msg ||
+          'Muitas submissões em sequência — aguarde ~1 minuto ou use /presenter para disparo direto.',
+      );
+    }
+    if (r.status === 400) {
+      throw new Error(msg || 'Form inválido — confira os campos e tente de novo.');
     }
     throw new Error(erro.detalhes ? `${msg}: ${JSON.stringify(erro.detalhes)}` : msg);
   }

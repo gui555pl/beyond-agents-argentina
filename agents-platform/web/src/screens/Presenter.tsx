@@ -5,14 +5,18 @@
  * Útil pra o apresentador rodar uma run polished sem digitar nada no pitch.
  * Após disparar, navega para `/runs/:runId`.
  */
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { iniciarRunLegacy } from '../lib/api';
+import { aquecerBackend, iniciarRunLegacy } from '../lib/api';
 
 export function Presenter() {
   const navigate = useNavigate();
   const [carregando, setCarregando] = useState<'edtech' | 'healthtech' | null>(null);
   const [erro, setErro] = useState<string | null>(null);
+
+  useEffect(() => {
+    void aquecerBackend();
+  }, []);
 
   const disparar = async (vertical: 'edtech' | 'healthtech') => {
     setCarregando(vertical);

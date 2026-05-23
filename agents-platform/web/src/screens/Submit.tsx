@@ -10,8 +10,8 @@
  */
 import { useEffect, useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getFixture, submitForm } from '../lib/api';
-import { sanitizarFormParaEnvio } from '../lib/form-limits';
+import { getFixture, submitForm, aquecerBackend } from '../lib/api';
+import { FORM_LIMITS, sanitizarFormParaEnvio, validarFormSanitizado } from '../lib/form-limits';
 import { useStore } from '../lib/store';
 import type { FormSimplificado, FixtureRes, TempoTrabalho, Vertical } from '../lib/tipos';
 
@@ -84,6 +84,7 @@ export function Submit() {
   const [erro, setErro] = useState<string | null>(null);
   const [campoComErro, setCampoComErro] = useState<keyof FormSimplificado | null>(null);
   const [carregandoDefaults, setCarregandoDefaults] = useState(true);
+  const [backendPronto, setBackendPronto] = useState(false);
 
   const set = <K extends keyof FormSimplificado>(k: K, v: FormSimplificado[K]) =>
     setForm((f) => ({ ...f, [k]: v }));
@@ -99,14 +100,19 @@ export function Submit() {
     }
   };
 
-  // Carrega defaults Erudio automaticamente ao montar — modo apresentação.
-  // O usuário pode trocar/limpar a qualquer momento via botões do topo.
+  // Carrega defaults Erudio + aquece o backend (cold start Render free tier).
   useEffect(() => {
     let cancelado = false;
     setCarregandoDefaults(true);
-    getFixture('edtech')
-      .then((fix) => {
-        if (!cancelado) setForm(fixtureParaForm(fix));
+    Promise.all([
+      getFixture('edtech'),
+      aquecerBackend().catch(() => false),
+    ])
+      .then(([fix, ok]) => {
+        if (!cancelado) {
+          setForm(fixtureParaForm(fix));
+          setBackendPronto(ok);
+        }
       })
       .catch((err) => {
         if (!cancelado) setErro(err instanceof Error ? err.message : String(err));
@@ -125,22 +131,12 @@ export function Submit() {
     setCampoComErro(null);
   };
 
-  const validar = (): keyof FormSimplificado | null => {
-    if (form.nome_solucao.trim().length < 2) return 'nome_solucao';
-    if (form.descricao_curta.trim().length < 10) return 'descricao_curta';
-    if (form.dor_e_evidencia.trim().length < 20) return 'dor_e_evidencia';
-    if (form.publico_alvo.trim().length < 5 || form.publico_alvo.trim().length > 300) return 'publico_alvo';
-    if (form.diferencial_moat.trim().length < 10) return 'diferencial_moat';
-    if (form.concorrentes.trim().length < 3) return 'concorrentes';
-    if (form.tam_aproximado.trim().length < 1) return 'tam_aproximado';
-    return null;
-  };
-
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (enviando) return;
     setErro(null);
-    const erroCampo = validar();
+    const payload = sanitizarFormParaEnvio(form);
+    const erroCampo = validarFormSanitizado(payload);
     if (erroCampo) {
       setCampoComErro(erroCampo);
       setErro('Confira os campos destacados antes de enviar.');
@@ -149,13 +145,13 @@ export function Submit() {
     setEnviando(true);
     reset();
     try {
-      const resp = await submitForm(form);
+      if (!backendPronto) await aquecerBackend();
+      const resp = await submitForm(payload);
       navigate(`/runs/${resp.runId}`);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
-      if (msg.includes('publico_alvo') || msg.includes('Too big')) {
-        setCampoComErro('publico_alvo');
-        setErro('O campo "Público-alvo" está longo demais. Encurte o texto e tente de novo.');
+      if (msg.includes('Too big') || msg.includes('Form inválido')) {
+        setErro('Algum campo excede o limite do servidor. Encurte o texto e tente de novo.');
       } else {
         setErro(msg);
       }
@@ -187,7 +183,11 @@ export function Submit() {
           <div className="flex flex-col">
             <span className="text-caption-uppercase text-muted">Exemplo pré-carregado</span>
             <span className="text-caption text-muted-soft">
-              {carregandoDefaults ? 'Carregando defaults…' : 'Pode editar livremente antes de submeter'}
+              {carregandoDefaults
+                ? 'Carregando defaults…'
+                : backendPronto
+                  ? 'Pronto para submeter'
+                  : 'Servidor aquecido — pode submeter'}
             </span>
           </div>
           <div className="flex flex-wrap gap-2 md:ml-auto">
@@ -264,53 +264,57 @@ export function Submit() {
           </Bloco>
 
           <Bloco numero="02" titulo="Problema & Mercado">
-            <Campo label="Dor que resolve + evidências" obrigatorio>
+            <Campo label="Dor que resolve + evidências" obrigatorio dica={`Até ${FORM_LIMITS.dor_e_evidencia} caracteres`}>
               <textarea
                 value={form.dor_e_evidencia}
                 onChange={(e) => set('dor_e_evidencia', e.target.value)}
                 placeholder="Qual dor você resolve e o que comprova que ela existe? (entrevistas, dados, estudos)"
                 rows={4}
+                maxLength={FORM_LIMITS.dor_e_evidencia}
                 className={`${inputBase} resize-none ${campoComErro === 'dor_e_evidencia' ? errClass : ''}`}
               />
             </Campo>
 
-            <Campo label="Pra quem é (público-alvo)" obrigatorio dica="Até 300 caracteres">
+            <Campo label="Pra quem é (público-alvo)" obrigatorio dica={`Até ${FORM_LIMITS.publico_alvo} caracteres`}>
               <textarea
                 value={form.publico_alvo}
                 onChange={(e) => set('publico_alvo', e.target.value)}
                 placeholder="Ex: Coordenadores de residência médica em hospitais-escola com 100+ residentes"
                 rows={3}
-                maxLength={300}
+                maxLength={FORM_LIMITS.publico_alvo}
                 className={`${inputBase} resize-none ${campoComErro === 'publico_alvo' ? errClass : ''}`}
               />
             </Campo>
 
-            <Campo label="Diferencial / moat" obrigatorio>
+            <Campo label="Diferencial / moat" obrigatorio dica={`Até ${FORM_LIMITS.diferencial_moat} caracteres`}>
               <textarea
                 value={form.diferencial_moat}
                 onChange={(e) => set('diferencial_moat', e.target.value)}
                 placeholder="Por que vocês? Tecnologia própria, dados exclusivos, posição única."
                 rows={3}
+                maxLength={FORM_LIMITS.diferencial_moat}
                 className={`${inputBase} resize-none ${campoComErro === 'diferencial_moat' ? errClass : ''}`}
               />
             </Campo>
 
-            <Campo label="Concorrentes principais" obrigatorio>
+            <Campo label="Concorrentes principais" obrigatorio dica={`Até ${FORM_LIMITS.concorrentes} caracteres`}>
               <input
                 type="text"
                 value={form.concorrentes}
                 onChange={(e) => set('concorrentes', e.target.value)}
                 placeholder="Ex: TOTVS, Sponte, Moodle — nenhum cobre rodízio + auditoria juntos"
+                maxLength={FORM_LIMITS.concorrentes}
                 className={`${inputBase} ${campoComErro === 'concorrentes' ? errClass : ''}`}
               />
             </Campo>
 
-            <Campo label="TAM aproximado" obrigatorio>
+            <Campo label="TAM aproximado" obrigatorio dica={`Até ${FORM_LIMITS.tam_aproximado} caracteres`}>
               <input
                 type="text"
                 value={form.tam_aproximado}
                 onChange={(e) => set('tam_aproximado', e.target.value)}
                 placeholder="Ex: R$ 8-12 Bi (EdTech B2B Brasil)"
+                maxLength={FORM_LIMITS.tam_aproximado}
                 className={`${inputBase} ${campoComErro === 'tam_aproximado' ? errClass : ''}`}
               />
             </Campo>
@@ -346,6 +350,7 @@ export function Submit() {
                   onChange={(e) => set('barreira_legal_detalhes', e.target.value)}
                   placeholder="Qual barreira? Lei, regulamento, órgão regulador."
                   rows={2}
+                  maxLength={FORM_LIMITS.barreira_legal_detalhes}
                   className={`${inputBase} mt-3 resize-none`}
                 />
               )}
@@ -372,12 +377,13 @@ export function Submit() {
               </div>
             </Campo>
 
-            <Campo label="Background do founder principal" dica="LinkedIn, experiência relevante, exits anteriores">
+            <Campo label="Background do founder principal" dica={`Até ${FORM_LIMITS.founder_background} caracteres`}>
               <textarea
                 value={form.founder_background}
                 onChange={(e) => set('founder_background', e.target.value)}
                 placeholder="Ex: 9 anos liderando produto em EdTechs B2B, exit em 2022, MBA em Education Tech."
                 rows={3}
+                maxLength={FORM_LIMITS.founder_background}
                 className={`${inputBase} resize-none`}
               />
             </Campo>
@@ -403,6 +409,13 @@ export function Submit() {
             </button>
             <p className="text-center text-caption text-muted">
               Roda ao vivo · tempo estimado 1–3 minutos · você recebe um link único para revisitar o resultado.
+            </p>
+            <p className="text-center text-caption text-muted-soft">
+              Problemas no envio? Use o{' '}
+              <a href="/presenter" className="text-primary-light underline-offset-2 hover:underline">
+                modo apresentador
+              </a>{' '}
+              (disparo direto, sem formulário).
             </p>
           </div>
         </form>
