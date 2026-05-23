@@ -239,27 +239,15 @@ Essa fronteira clara é parte da maturidade da solução: cada coisa no lugar ce
 
 Dentro de **cada nó da árvore** (uma hipótese), o pipeline é uma **cadeia determinística** (prompt-chain) de 7 agentes. O Orquestrador NÃO entra nesses 7 passos — ele só recebe o veredito ao fim, conforme §2.1. Ordem real implementada em [agents-platform/src/workflows/pipeline-no.ts](agents-platform/src/workflows/pipeline-no.ts):
 
-```
-[hipótese ativa]
-   ↓
-1. Buscador / Bench       → dossiê (alimenta o Validador)
-   ↓
-2. Validador Aurora       → score + tags + VETO se aplicável
-   ↓                          (se VETO: poda imediata, sem rodar 3-7)
-3. Criador de LP          → HTML da landing page (mock no MVP)
-   ↓
-4. Criador de Ads         → 3 cards de ads (mock no MVP)
-   ↓
-   (transição visual: estado do nó vira "deployada" — deploy real Vercel é next phase)
-   ↓
-5. Gestor de Tráfego      → handoff LP → Swarm (mock no MVP)
-   ↓
-6. Swarm (Miro Fish)      → N personas LLM analisam a LP em paralelo
-   ↓
-7. Análise de Performance → veredito + métricas (determinístico)
-   ↓
-[veredito devolve ao Orquestrador → decide expandir/refinar/podar/promover]
-```
+1. **Buscador / Benchmark** → dossiê (alimenta o Validador).
+2. **Validador Aurora** → score + tags + VETO regulatório se aplicável *(se VETO: poda imediata, sem rodar 3-7)*.
+3. **Criador de LP** → HTML da landing page.
+4. **Criador de Ads** → 3 cards de ads.
+5. **Gestor de Tráfego** → handoff LP → Swarm (entre 4 e 5, o estado visual do nó vira `deployada`).
+6. **Swarm (Miro Fish)** → N personas LLM analisam a LP em paralelo.
+7. **Análise de Performance** → veredito + métricas.
+
+Ao fim do passo 7, o veredito volta para o Orquestrador, que decide `expandir / refinar / podar / promover` — diagrama visual completo em [Fluxograma.jpg](./Fluxograma.jpg).
 
 **Observação importante:** a ordem do quadro original era `Validador → Buscador`. O código inverte para `Buscador → Validador` porque o Validador consome o dossiê do Buscador para preencher o critério 10 (auto-research jurídico) e validar discrepâncias com o que o founder declarou. Essa inversão é intencional.
 
@@ -267,37 +255,7 @@ Ads são gerados, **renderizados como cards na UI**, mas **não publicados**. No
 
 ### 5.1 Decisões internas — dois scores, refinamento e promoção
 
-A espinha acima esconde três pontos sutis que confundem na leitura rápida do fluxo: (a) o nó produz **dois scores independentes** que se combinam no score final; (b) **score baixo não é sentença automática** — existe caminho de refinamento; (c) o gate de **promoção tem números objetivos**. Esta seção explicita os três.
-
-#### Diagrama corrigido
-
-```mermaid
-flowchart TB
-  no[No da arvore]
-  no --> b["1. Buscador / Bench<br/>dossie por vertical"]
-  b --> v["2. Validador Aurora<br/>scorecard 16 criterios"]
-  v --> scoreAurora["Score Aurora 0-100<br/>aka score_parcial_fit"]
-  v -->|"VETO regulatorio (crit 10 = 1)"| podaVeto[Poda imediata]
-  scoreAurora --> lp["3. Criador LP"]
-  lp --> ads["4. Criador Ads"]
-  ads --> trafego["5. Gestor de Trafego"]
-  trafego --> swarm["6. Swarm<br/>N personas LLM"]
-  swarm --> perf["7. Performance Analyst"]
-  perf --> metricas["Metricas Performance<br/>taxa_pagaria, ctr, sean-ellis, intencao_media"]
-  metricas --> veredito["Veredito: aprovada / refinar / podada"]
-
-  scoreAurora -.alimenta.-> final["Score final multivariavel"]
-  metricas -.alimenta.-> final
-  custos["Custo em tokens (next phase)"] -.alimenta.-> final
-
-  veredito --> orq["Orquestrador decide<br/>(1 chamada LLM apos pipeline)"]
-  scoreAurora -.contexto.-> orq
-
-  orq -->|"Aurora >= 70 + aprovada + prof > 0"| promover
-  orq -->|"score baixo OU swarm fraco<br/>+ refinements < cap"| refinar
-  orq -->|"score baixo + swarm fraco<br/>+ refinements = cap"| poda
-  orq -->|"swarm OK + cabe na arvore"| expandir
-```
+A espinha acima esconde três pontos sutis que confundem na leitura rápida do fluxo: (a) o nó produz **dois scores independentes** que se combinam no score final; (b) **score baixo não é sentença automática** — existe caminho de refinamento; (c) o gate de **promoção tem números objetivos**. Esta seção explicita os três. Para a visão visual do loop completo (com as 4 decisões do Orquestrador e como elas realimentam a fila), ver [Fluxograma.jpg](./Fluxograma.jpg).
 
 #### Os dois scores — não confundir
 
@@ -448,58 +406,19 @@ Tudo TypeScript. Stack realmente implementada no MVP:
 
 Padrão híbrido com loop explícito de controle. O Orquestrador (1 chamada LLM por nó, após o pipeline completo) decide `expandir / refinar / promover / podar` e realimenta a fila — `expandir` cria filhos, `refinar` cria variação, `promover` finaliza no score, `podar` encerra o caminho. Workers do pipeline fazem handoff direto entre si; o Orquestrador NÃO entra no meio.
 
-```mermaid
-flowchart TB
-    submissao[Submissao Aurora]
-    submissao --> raiz[Cria no raiz]
-    raiz --> fila[Fila pendente]
-
-    orq{"ORQUESTRADOR LLM Haiku<br/>1 chamada por no<br/>apos pipeline completo"}
-
-    orq -->|expandir| filhos[Cria filhos]
-    orq -->|refinar| variacao[Cria variacao]
-    orq -->|promover| scoreFinal["Score multivariavel<br/>quanti + quali + econ + fit"]
-    orq -->|podar| morta[Encerra caminho]
-
-    filhos --> fila
-    variacao --> fila
-
-    fila -->|Para cada no| b
-
-    subgraph pipeline [Pipeline DETERMINISTICO por no - handoff direto entre workers]
-        direction LR
-        b["1 Buscador<br/>mock no MVP<br/>dossie por vertical"]
-        v["2 Validador<br/>LLM Haiku<br/>scorecard 16 criterios"]
-        lp["3 Criador LP<br/>mock no MVP<br/>fixture HTML"]
-        ads["4 Criador Ads<br/>mock no MVP<br/>3 cards"]
-        trafego["5 Gestor Trafego<br/>mock no MVP<br/>handoff visual"]
-        swarm["6 Swarm Miro Fish<br/>LLM N personas paralelo"]
-        perf["7 Performance<br/>determinístico thresholds"]
-
-        b --> v
-        v -.VETO regulatorio.-> podaEarly[Poda imediata]
-        v --> lp --> ads --> trafego --> swarm --> perf
-    end
-
-    perf -->|veredito + metricas| orq
-
-    scoreFinal --> relatorio["Relatorio executivo<br/>top 3 hipoteses ranqueadas"]
-
-    orq -.stream SSE.-> ui["Site da Demo<br/>arvore ao vivo<br/>painel LP iframe<br/>cards de Ads<br/>swarm visualizado<br/>metricas em tempo real"]
-    pipeline -.eventos SSE por passo.-> ui
-```
+![Fluxograma da arquitetura — Beyond Agents · Autovalidador de Ideias](./Fluxograma.jpg)
 
 **Leitura do diagrama:**
 
-- **Entrada:** `Submissao Aurora` → `Cria no raiz` → entra na `Fila pendente`.
-- **Loop principal:** para cada nó da fila, roda o pipeline determinístico de 7 agentes (LP, Ads, Tráfego e Performance são mocks no MVP — ver §3). Workers fazem handoff direto entre si, sem o Orquestrador no meio.
+- **Entrada:** `Submissão Aurora` → `Cria nó raiz` → entra na `Fila pendente`.
+- **Loop principal:** para cada nó da fila, roda o pipeline determinístico de 7 agentes (ver §3). Workers fazem handoff direto entre si, sem o Orquestrador no meio.
 - **VETO regulatório:** se o Validador (passo 2) acionar VETO (critério 10 = nota 1), o nó vai direto para `Poda imediata` sem rodar os passos 3-7.
 - **Decisão pós-pipeline:** `Performance` devolve `veredito + métricas` para o Orquestrador (1 chamada LLM). Quatro saídas:
   - `expandir` → cria filhos na fila (até `MAX_FAN_OUT`, respeitando `MAX_NODES` e `MAX_DEPTH`).
   - `refinar` → cria variação do mesmo nó com nova LP+Ads (até `MAX_REFINEMENTS_POR_NO`).
-  - `promover` → alimenta o `Score multivariavel` final.
+  - `promover` → alimenta o `Score multivariável` final.
   - `podar` → encerra esse caminho da árvore.
-- **Saídas terminais:** quando o loop termina (fila vazia ou caps estourados), o `Score multivariavel` (Aurora + Performance + econ + fit — §9) alimenta o `Relatorio executivo` com top 3 hipóteses ranqueadas.
+- **Saídas terminais:** quando o loop termina (fila vazia ou caps estourados), o `Score multivariável` (Aurora + Performance + econ + fit — §9) alimenta o `Relatório executivo` com top 3 hipóteses ranqueadas.
 - **Stream SSE:** o Orquestrador emite eventos de decisão; cada passo do pipeline emite eventos de progresso. Ambos vão para o `Site da Demo` em tempo real (contrato completo em §7 do CONTEXTO).
 
 ## 12. Cronograma para amanhã (10–12 horas, 4–5 pessoas)

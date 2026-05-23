@@ -136,40 +136,9 @@ Toda a exploração acontece **ao vivo** em um site dedicado. Esse é o produto 
 
 ### 5.5 Diagrama
 
-```mermaid
-flowchart TB
-    input[Ideia inicial]
+![Fluxograma da arquitetura — Beyond Agents · Autovalidador de Ideias](./Fluxograma.jpg)
 
-    subgraph orq[Orquestrador-Agente]
-        ctrl[Decide expandir / refinar / podar nos<br/>Mantem estado da arvore<br/>Emite eventos para a UI]
-    end
-
-    input --> orq
-
-    subgraph hip[Pipeline de cada hipotese - rodam em paralelo]
-        direction LR
-        val[1. Validador Aurora<br/>scorecard + tags]
-        bus[2. Buscador + Bench<br/>auto-research]
-        cri[3. Criador de Assets<br/>LP + 3 Ads + copy + roteiro]
-        dep[4. Deploy Vercel<br/>LP em URL publica]
-        tra[5. Gestor de Trafego<br/>dispara swarm]
-        mir[6. Miro Fish<br/>50-200 personas sinteticas]
-        per[7. Analisador de Performance<br/>veredito]
-
-        val --> bus --> cri
-        cri --> dep
-        cri -.gera assets.-> ads[3 Ads como cards na UI<br/>NAO publicados na demo]
-        dep --> tra --> mir --> per
-    end
-
-    orq -.dispara no.-> val
-    per -.devolve veredito.-> orq
-
-    orq ==>|streaming ao vivo| ui[Site da Demo<br/>- Arvore crescendo<br/>- Painel LP + Ads<br/>- Swarm visualizado<br/>- Metricas em tempo real]
-    ads -.exibe.-> ui
-
-    orq --> score[Score multivariavel final<br/>+ Relatorio executivo]
-```
+Visão visual completa: Orquestrador-Agente no topo decidindo `expandir / refinar / promover / podar`, fila pendente alimentando o pipeline determinístico de 7 agentes (Buscador → Validador → Criador LP → Criador Ads → Gestor de Tráfego → Swarm → Análise de Performance), com veredito + métricas voltando ao Orquestrador. Detalhes técnicos por seção em [Arquitetura - Autovalidador de Ideias.md](./Arquitetura%20-%20Autovalidador%20de%20Ideias.md).
 
 ## 6. Score final — multivariável, não binário
 
