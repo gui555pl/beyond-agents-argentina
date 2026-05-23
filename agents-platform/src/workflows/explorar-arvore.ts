@@ -139,6 +139,11 @@ export async function explorarArvore({
     const no = fila.shift()!;
 
     // 1. Processa o nó (Beatriz + Validador + Leandro + Ads + Swarm + Performance)
+    const nodeAbort = new AbortController();
+    const signals: AbortSignal[] = [nodeAbort.signal];
+    if (signal) signals.push(signal);
+    const combinedSignal = AbortSignal.any(signals);
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
     try {
       const resultado: RodarPipelineNoResultado = await Promise.race([
         rodarPipelineNo({
@@ -149,12 +154,16 @@ export async function explorarArvore({
           caps,
           emit,
           run_id,
-          signal,
+          signal: combinedSignal,
         }),
-        new Promise<RodarPipelineNoResultado>((_, reject) =>
-          setTimeout(() => reject(new Error('timeout')), caps.TIMEOUT_POR_NO_MS),
-        ),
+        new Promise<RodarPipelineNoResultado>((_, reject) => {
+          timeoutId = setTimeout(() => {
+            nodeAbort.abort();
+            reject(new Error('timeout'));
+          }, caps.TIMEOUT_POR_NO_MS);
+        }),
       ]);
+      if (timeoutId) clearTimeout(timeoutId);
       if (!dossie_compartilhado && resultado.dossie_para_compartilhar) {
         dossie_compartilhado = resultado.dossie_para_compartilhar;
       }
@@ -162,7 +171,11 @@ export async function explorarArvore({
         copy_guide_compartilhado = resultado.copy_guide_para_compartilhar;
       }
     } catch (err) {
-      const aborted = signal?.aborted || (err instanceof Error && err.name === 'AbortError');
+      if (timeoutId) clearTimeout(timeoutId);
+      const aborted =
+        signal?.aborted ||
+        nodeAbort.signal.aborted ||
+        (err instanceof Error && err.name === 'AbortError');
       if (aborted) {
         no.estado = 'podada';
         no.erro = 'abortada';
@@ -172,6 +185,7 @@ export async function explorarArvore({
       }
       no.estado = err instanceof Error && err.message === 'timeout' ? 'timeout' : 'podada';
       no.erro = err instanceof Error ? err.message : String(err);
+      console.warn(`[explorar-arvore] pipeline falhou em ${no.id}:`, no.erro);
       emit({ tipo: 'estado_mudou', no_id: no.id, estado: no.estado });
       continue; // segue para o próximo da fila
     }

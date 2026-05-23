@@ -43,39 +43,18 @@ export interface MetricasPerformance {
 }
 
 /**
- * Copy Guide produzido pela Beatriz — espelha o tipo do backend.
+ * Copy Guide enxuto produzido pelo agente Benchmark — alimenta o LLP.
+ * Espelha o tipo do backend.
  */
 export interface CopyGuide {
-  icp: {
-    demografico: string;
-    psicografico: string;
-    nivel_consciencia: string;
-  };
-  jtbd: {
-    funcional: string;
-    emocional: string;
-    social: string;
-  };
-  pain_gain: {
-    dores: string[];
-    ganhos: string[];
-  };
-  pas: {
-    problema: string;
-    agitacao: string;
-    solucao: string;
-  };
-  tone_of_voice: {
-    personalidade: string;
-    register: string;
-    dos: string[];
-    donts: string[];
-  };
-  value_proposition: {
-    headline: string;
-    subheadline: string;
-    uvp: string;
-  };
+  icp: string;
+  jtbd: string;
+  dor_principal: string;
+  proposta_valor: string;
+  tom_de_voz: string;
+  frase_pas: string;
+  principais_objecoes: string[];
+  diferenciais: string[];
 }
 
 export interface OutputValidador {

@@ -84,8 +84,9 @@ export function Live() {
       .finally(() => setHidratando(false));
   }, [runIdParam, runIdStore, submissao, hidratar]);
 
-  // Conecta o SSE
-  useSSE(runIdParam ?? null);
+  // Só abre o SSE depois da hidratação — evita race onde eventos chegam e
+  // `hidratarRun` zera a store logo em seguida (árvore fica vazia).
+  useSSE(hidratando || !submissao ? null : (runIdParam ?? null));
 
   const personasTotal = nos.reduce((acc, n) => acc + (n.swarm?.respostas.length ?? 0), 0);
   const vertical = submissao?.solucao.vertical ?? 'outra';

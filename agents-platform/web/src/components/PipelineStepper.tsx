@@ -31,9 +31,9 @@ interface Etapa {
 }
 
 const ETAPAS: Etapa[] = [
-  { id: 'buscador', ordem: 1, rotulo: 'Buscador', descricao: 'dossiê de mercado' },
+  { id: 'buscador', ordem: 1, rotulo: 'Benchmark', descricao: 'contexto de mercado' },
   { id: 'validador', ordem: 2, rotulo: 'Validador Aurora', descricao: '16 critérios + VETO' },
-  { id: 'criador', ordem: 3, rotulo: 'Criador de Assets', descricao: 'LP + 3 Ads' },
+  { id: 'criador', ordem: 3, rotulo: 'LLP', descricao: 'landing page + 3 ads' },
   { id: 'trafego', ordem: 4, rotulo: 'Gestor de Tráfego', descricao: 'handoff LP → swarm' },
   { id: 'swarm', ordem: 5, rotulo: 'Swarm', descricao: 'personas em paralelo' },
   { id: 'performance', ordem: 6, rotulo: 'Performance', descricao: 'métricas + veredito' },

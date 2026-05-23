@@ -69,37 +69,22 @@ export interface DossieBuscador {
  * Gerado 1× na raiz da árvore e compartilhado entre todos os nós como contexto
  * pro Leandro LP gerar HTML coerente com a estratégia de mensagem.
  */
+/**
+ * CopyGuide — contexto enxuto que o agente Benchmark passa para o LLP.
+ *
+ * Modo apresentação: shape simples (até ~10 linhas), gerado por Haiku
+ * com prompt minimalista. Suficiente para o LLP produzir copy alinhada
+ * sem gastar tempo num framework completo.
+ */
 export interface CopyGuide {
-  icp: {
-    demografico: string;
-    psicografico: string;
-    nivel_consciencia: string;
-  };
-  jtbd: {
-    funcional: string;
-    emocional: string;
-    social: string;
-  };
-  pain_gain: {
-    dores: string[];
-    ganhos: string[];
-  };
-  pas: {
-    problema: string;
-    agitacao: string;
-    solucao: string;
-  };
-  tone_of_voice: {
-    personalidade: string;
-    register: string;
-    dos: string[];
-    donts: string[];
-  };
-  value_proposition: {
-    headline: string;
-    subheadline: string;
-    uvp: string;
-  };
+  icp: string;
+  jtbd: string;
+  dor_principal: string;
+  proposta_valor: string;
+  tom_de_voz: string;
+  frase_pas: string;
+  principais_objecoes: string[];
+  diferenciais: string[];
 }
 
 export interface OutputValidador {
@@ -255,5 +240,9 @@ export const CAPS_DEFAULT: CapsPalco = {
   MAX_NODES: 6,
   MAX_REFINEMENTS_POR_NO: 1,
   PERSONAS_POR_LP: 8,
-  TIMEOUT_POR_NO_MS: 90_000,
+  // Beatriz (60s) + Validador (60s) + Leandro (90s) + Swarm — 90s estourava na raiz.
+  TIMEOUT_POR_NO_MS: Math.max(
+    60_000,
+    parseInt(process.env.TIMEOUT_POR_NO_MS ?? '300000', 10) || 300_000,
+  ),
 };

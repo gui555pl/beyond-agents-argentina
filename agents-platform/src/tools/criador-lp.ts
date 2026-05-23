@@ -173,7 +173,7 @@ export async function gerarLpComLLM(input: GerarLpComLLMInput): Promise<GerarLpO
 
   try {
     const html = await callAgent({
-      agente: 'leandro-lp',
+      agente: 'llp',
       modelo: 'claude-sonnet-4-5',
       system: getPromptLeandro(),
       user: userPrompt,

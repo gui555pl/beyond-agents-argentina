@@ -483,66 +483,40 @@ function TabAurora({ no }: { no: No }) {
 function TabAnalise({ no }: { no: No }) {
   const cg = no.copy_guide;
   if (!cg) {
-    return (
-      <Vazio>
-        Copy Guide indisponível (Beatriz não rodou neste nó ou caiu no fallback determinístico).
-      </Vazio>
-    );
+    return <Vazio>Copy Guide indisponível para este nó.</Vazio>;
   }
 
   return (
     <div className="space-y-4 p-5">
-      <Card titulo="ICP — Ideal Customer Profile">
-        <Linha label="Demográfico">{cg.icp.demografico}</Linha>
-        <Linha label="Psicográfico">{cg.icp.psicografico}</Linha>
-        <Linha label="Nível de consciência" mono>
-          {cg.icp.nivel_consciencia}
+      <Card titulo="Contexto de mercado">
+        <Linha label="ICP">{cg.icp}</Linha>
+        <Linha label="JTBD">{cg.jtbd}</Linha>
+        <Linha label="Dor principal">{cg.dor_principal}</Linha>
+      </Card>
+
+      <Card titulo="Proposta de valor">
+        <Linha label="Mensagem">{cg.proposta_valor}</Linha>
+        <Linha label="Tom de voz" mono>
+          {cg.tom_de_voz}
         </Linha>
+        <Linha label="PAS">{cg.frase_pas}</Linha>
       </Card>
 
-      <Card titulo="JTBD — Jobs To Be Done">
-        <Linha label="Funcional">{cg.jtbd.funcional}</Linha>
-        <Linha label="Emocional">{cg.jtbd.emocional}</Linha>
-        <Linha label="Social">{cg.jtbd.social}</Linha>
-      </Card>
+      {(cg.diferenciais?.length ?? 0) > 0 && (
+        <Card titulo="Diferenciais">
+          <Lista label="Pontos de força" itens={cg.diferenciais} cor="text-success" />
+        </Card>
+      )}
 
-      <Card titulo="Value Proposition">
-        <Linha label="Headline">{cg.value_proposition.headline}</Linha>
-        <Linha label="Subhead">{cg.value_proposition.subheadline}</Linha>
-        <Linha label="UVP única">{cg.value_proposition.uvp}</Linha>
-      </Card>
-
-      <Card titulo="Tom de voz">
-        <Linha label="Personalidade">{cg.tone_of_voice.personalidade}</Linha>
-        <Linha label="Register" mono>
-          {cg.tone_of_voice.register}
-        </Linha>
-        {cg.tone_of_voice.dos.length > 0 && (
-          <Lista label="Faça" itens={cg.tone_of_voice.dos} cor="text-success" />
-        )}
-        {cg.tone_of_voice.donts.length > 0 && (
-          <Lista label="Não faça" itens={cg.tone_of_voice.donts} cor="text-danger" />
-        )}
-      </Card>
-
-      <Card titulo="Pain — Gain">
-        {cg.pain_gain.dores.length > 0 && (
-          <Lista label="Dores" itens={cg.pain_gain.dores} cor="text-danger" />
-        )}
-        {cg.pain_gain.ganhos.length > 0 && (
-          <Lista label="Ganhos" itens={cg.pain_gain.ganhos} cor="text-success" />
-        )}
-      </Card>
-
-      <Card titulo="PAS — Problem, Agitation, Solution">
-        <Linha label="Problema">{cg.pas.problema}</Linha>
-        <Linha label="Agitação">{cg.pas.agitacao}</Linha>
-        <Linha label="Solução">{cg.pas.solucao}</Linha>
-      </Card>
+      {(cg.principais_objecoes?.length ?? 0) > 0 && (
+        <Card titulo="Objeções esperadas">
+          <Lista label="Atenção do copy" itens={cg.principais_objecoes} cor="text-danger" />
+        </Card>
+      )}
 
       <p className="px-1 text-caption text-muted-soft">
-        Copy Guide produzido pela Beatriz na raiz da árvore e compartilhado com este nó como
-        contexto pro Leandro LP.
+        Contexto produzido pelo agente Benchmark e compartilhado com este nó como insumo do agente
+        LLP.
       </p>
     </div>
   );

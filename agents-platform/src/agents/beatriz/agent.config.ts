@@ -11,5 +11,5 @@ export default {
   description:
     'Benchmark competitivo + Copy Guide (ICP, JTBD, Pain-Gain, PAS, Tone of Voice, Value Proposition) baseado no formulário Aurora + snapshot de tendências da vertical.',
   tools: [] as const,
-  model: 'claude-sonnet-4-5' as const,
+  model: 'claude-haiku-4-5' as const,
 };
