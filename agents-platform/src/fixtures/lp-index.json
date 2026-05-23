@@ -1,0 +1,50 @@
+[
+  {
+    "id": "lp-1",
+    "arquivo_lp": "lp-1.html",
+    "arquivo_ads": "ads-1.html",
+    "angulo": "Clínica pequena genérica — foco em no-show e secretária digital",
+    "publico": "Médicos donos de clínicas com 1-10 médicos, dor de no-show",
+    "tags": ["clinica-pequena", "no-show", "whatsapp", "secretaria-digital"]
+  },
+  {
+    "id": "lp-2",
+    "arquivo_lp": "lp-2.html",
+    "arquivo_ads": "ads-2.html",
+    "angulo": "Enterprise / redes multi-unidades — TISS, dashboard, padronização",
+    "publico": "Gestores administrativos de redes de 5-20 clínicas",
+    "tags": ["rede-multi-unidades", "tiss", "enterprise", "padronizacao", "dashboard"]
+  },
+  {
+    "id": "lp-3",
+    "arquivo_lp": "lp-3.html",
+    "arquivo_ads": "ads-3.html",
+    "angulo": "Solo / preço baixo / direto ao CTA",
+    "publico": "Médicos solo recém-saindo, sensíveis a preço",
+    "tags": ["solo", "preco-baixo", "direto", "sem-secretaria"]
+  },
+  {
+    "id": "lp-4",
+    "arquivo_lp": "lp-4.html",
+    "arquivo_ads": "ads-4.html",
+    "angulo": "Saúde mental — psiquiatria/psicologia — transcrição de sessão e SOAP",
+    "publico": "Psiquiatras e psicólogos com consultório próprio ou híbrido",
+    "tags": ["saude-mental", "psiquiatria", "psicologia", "transcricao", "soap", "telemedicina"]
+  },
+  {
+    "id": "lp-5",
+    "arquivo_lp": "lp-5.html",
+    "arquivo_ads": "ads-5.html",
+    "angulo": "Franquias de clínicas — padronização de rede e onboarding rápido",
+    "publico": "Franqueadores de redes de clínicas (10+ unidades)",
+    "tags": ["franquia", "rede-franqueada", "padronizacao-rede", "sso", "onboarding"]
+  },
+  {
+    "id": "lp-6",
+    "arquivo_lp": "lp-6.html",
+    "arquivo_ads": "ads-6.html",
+    "angulo": "Profissional autônomo multi-profissão — agenda + cobrança + lembretes",
+    "publico": "Dentistas, psicólogos, fisioterapeutas, nutricionistas autônomos",
+    "tags": ["autonomo", "multi-profissao", "agenda", "cobranca-pix", "lembrete"]
+  }
+]

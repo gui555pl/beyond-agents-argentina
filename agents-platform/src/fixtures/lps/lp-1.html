@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{HEADLINE}} — MedFlow</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-slate-950 text-slate-100 antialiased">
+    <header class="border-b border-slate-800/60 bg-slate-950/80 backdrop-blur">
+      <div class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+        <span class="text-lg font-semibold tracking-tight">MedFlow</span>
+        <nav class="flex items-center gap-8 text-sm text-slate-300">
+          <a href="#features" class="hover:text-white">Produto</a>
+          <a href="#proof" class="hover:text-white">Resultados</a>
+          <a href="#pricing" class="hover:text-white">Preços</a>
+          <a href="#cta" class="rounded-md bg-emerald-500 px-4 py-2 font-medium text-slate-950 hover:bg-emerald-400">{{CTA}}</a>
+        </nav>
+      </div>
+    </header>
+
+    <section class="mx-auto max-w-6xl px-6 py-24 text-center">
+      <span class="inline-flex items-center rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-300">
+        Para clínicas pequenas brasileiras
+      </span>
+      <h1 class="mx-auto mt-6 max-w-4xl text-5xl font-semibold leading-tight tracking-tight text-white sm:text-6xl">
+        {{HEADLINE}}
+      </h1>
+      <p class="mx-auto mt-6 max-w-2xl text-lg text-slate-300">{{SUBHEAD}}</p>
+      <div class="mt-10 flex justify-center gap-4">
+        <a href="#cta" class="rounded-md bg-emerald-500 px-6 py-3 font-medium text-slate-950 hover:bg-emerald-400">{{CTA}}</a>
+        <a href="#proof" class="rounded-md border border-slate-700 px-6 py-3 font-medium text-slate-200 hover:bg-slate-800">Ver demonstração</a>
+      </div>
+      <p class="mt-4 text-sm text-slate-500">Sem cartão • Setup em 24h • LGPD-compliant</p>
+    </section>
+
+    <section id="features" class="border-t border-slate-800/60 bg-slate-900/40">
+      <div class="mx-auto grid max-w-6xl gap-8 px-6 py-20 sm:grid-cols-3">
+        <div>
+          <div class="text-3xl">💬</div>
+          <h3 class="mt-3 text-xl font-semibold">Confirmação automática</h3>
+          <p class="mt-2 text-slate-400">A IA conversa no WhatsApp com seus pacientes, confirma consultas e reagenda — sem secretária no meio.</p>
+        </div>
+        <div>
+          <div class="text-3xl">🧠</div>
+          <h3 class="mt-3 text-xl font-semibold">Triagem inicial</h3>
+          <p class="mt-2 text-slate-400">Antes da consulta, a IA já levanta queixa principal, sintomas e histórico — você chega no atendimento com 10min adiantados.</p>
+        </div>
+        <div>
+          <div class="text-3xl">📝</div>
+          <h3 class="mt-3 text-xl font-semibold">Prontuário gerado por voz</h3>
+          <p class="mt-2 text-slate-400">A consulta é transcrita, organizada em SOAP e salva automaticamente. Você sai do consultório com o prontuário pronto.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="proof" class="mx-auto max-w-6xl px-6 py-20">
+      <h2 class="text-3xl font-semibold tracking-tight">Resultados em 60 dias com 12 clínicas piloto</h2>
+      <div class="mt-10 grid gap-6 sm:grid-cols-3">
+        <div class="rounded-xl border border-slate-800 bg-slate-900/40 p-6">
+          <div class="text-4xl font-semibold text-emerald-400">-14pp</div>
+          <p class="mt-2 text-slate-300">redução média de no-show</p>
+        </div>
+        <div class="rounded-xl border border-slate-800 bg-slate-900/40 p-6">
+          <div class="text-4xl font-semibold text-emerald-400">+R$ 18k/mês</div>
+          <p class="mt-2 text-slate-300">receita recuperada por clínica</p>
+        </div>
+        <div class="rounded-xl border border-slate-800 bg-slate-900/40 p-6">
+          <div class="text-4xl font-semibold text-emerald-400">4h/dia</div>
+          <p class="mt-2 text-slate-300">economizadas pela secretária</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="cta" class="border-t border-slate-800/60 bg-emerald-500/10">
+      <div class="mx-auto max-w-3xl px-6 py-20 text-center">
+        <h2 class="text-3xl font-semibold tracking-tight">Pronto pra parar de perder consulta?</h2>
+        <p class="mt-3 text-slate-300">Setup em 24h. Sem fidelidade. Cancele quando quiser.</p>
+        <a href="#cta" class="mt-6 inline-block rounded-md bg-emerald-500 px-8 py-4 font-medium text-slate-950 hover:bg-emerald-400">{{CTA}}</a>
+      </div>
+    </section>
+
+    <footer class="border-t border-slate-800/60 py-10 text-center text-sm text-slate-500">
+      MedFlow • CRM operadoras • CNPJ 00.000.000/0001-00
+    </footer>
+  </body>
+</html>

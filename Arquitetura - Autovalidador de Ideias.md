@@ -5,31 +5,36 @@
 
 ## 1. Sumário executivo
 
-Pipeline agêntico em padrão **Orchestrator-Workers** que recebe uma submissão (formulário de aplicação da Aurora preenchido pelo founder, ou prompt livre na demo) e devolve um **score multivariável** após explorar uma **árvore de hipóteses**. Cada nó da árvore: gera **1 LP + 3 ads** como assets reais, sobe a LP em URL pública (Vercel), dispara um swarm de **personas sintéticas (Miro Fish)** para validar tração, e devolve veredito ao orquestrador, que decide **expandir, refinar ou podar**. Toda a exploração é visualizada **ao vivo** em um site dedicado.
+Pipeline agêntico em padrão **híbrido** (prompt-chain dentro do nó + supervisor entre nós — §2.1) que recebe uma submissão (formulário de aplicação da Aurora preenchido pelo founder; modo prompt livre fica como next phase) e devolve um **score multivariável** após explorar uma **árvore de hipóteses**. Cada nó da árvore: gera **1 LP + 3 ads** (no MVP, fixtures rotativos), simula deploy/handoff de tráfego, dispara um swarm de **personas sintéticas (Miro Fish)** para validar tração, e devolve veredito ao Orquestrador, que decide **expandir, refinar, podar ou promover**. Toda a exploração é visualizada **ao vivo** em um site dedicado.
 
 A solução **não substitui** decisão de investimento — alimenta o Comitê Aurora com dados que hoje custam pessoas + semanas, em **dias**. O input é o **formulário de submissão Aurora** (estruturado em 5 blocos: Founders, Solução, Progresso, Problema & Mercado, Expectativas — schema completo em §15), o que destrava o uso direto do scorecard oficial da Fase 1 e dá ao Validador Aurora evidência de campo para quase todos os critérios.
 
 ## 2. Princípios arquiteturais
 
-1. **Orchestrator-Workers**, não multi-agente colaborativo. Um agente orquestrador coordena agentes workers especialistas. Workers não falam entre si. Auditável, demonstrável, sem bouncing infinito.
-2. **Single agent + skills** para escrita coordenada. O Criador de Assets é UM agente com 4 skills (LP, ads, copy, roteiro) — garante coerência de mensagem entre LP e ads.
-3. **Stateless por execução**. Estado da árvore vive no orquestrador, em-process ou Redis. Sem persistência cara.
+1. **Padrão híbrido em dois níveis**, não Orchestrator-Workers puro. Dentro de cada nó da árvore o sistema usa um **prompt-chain determinístico** (espinha sequencial de 7 passos — §5) que passa output direto de um agente para o próximo, sem o Orquestrador no meio. **Entre nós**, o Orquestrador-Agente atua como **supervisor/router**: depois que o pipeline do nó termina, ele decide `expandir / refinar / podar / promover`. Essa separação é deliberada — pipeline interno auditável e barato; decisão entre nós agêntica e flexível. Workers do pipeline não negociam nem escolhem quem chamar; só fluem dados em cadeia fixa.
+2. **Criador de Assets — design previsto vs MVP.** O design original é UM agente único com 4 skills (LP, ads, copy, roteiro) para coerência de mensagem. No MVP, LP e Ads são **mocks determinísticos separados** ([agents-platform/src/tools/criador-lp.ts](agents-platform/src/tools/criador-lp.ts) e [criador-ads.ts](agents-platform/src/tools/criador-ads.ts)) — fixtures rotativos sem coordenação de copy. O agente coordenado fica como "next phase".
+3. **Stateless por execução**. Estado da árvore vive em-process por run. Sem persistência cross-execução no MVP.
 4. **Caps como envelope, não como cérebro**. Profundidade, fan-out, budget e timeout são guard-rails determinísticos. Tudo o que está **dentro** do envelope é decisão agêntica.
 5. **Não-automação da decisão final**. Sistema entrega score acionável. Comitê Aurora decide investimento. Isso é maturidade arquitetural, não limitação.
 
 ## 3. Inventário de agentes
 
-| # | Agente | Tipo | Função | Output |
-|---|---|---|---|---|
-| 1 | **Orquestrador** | Agente LLM | Recebe ideia, expande sub-hipóteses, decide podar/expandir/refinar a cada veredito, emite eventos para a UI | Estado da árvore + score final |
-| 2 | **Validador Aurora** | Agente LLM | Consome o formulário Aurora completo (§15) e roda o scorecard do Playbook de Seleção sobre a hipótese — 12 critérios gerais + critérios específicos de Mercado/Inorgânico (perfil do founder, dono da briga, sinergia operacional). Não é gate booleano: sempre roda até o fim, atribui notas, calcula score parcial de fit estratégico, exceção é o **veto regulatório**. Detalhe em §4. | Score parcial + critérios + tags de tese + recomendação |
-| 3 | **Buscador / Análise de Concorrentes** | Agente LLM | A partir do dossiê do formulário Aurora, **valida e enriquece** as afirmações do founder: confere TAM/SAM/SOM, confronta a lista de concorrentes com benchmark de mercado, identifica concorrentes não-listados, levanta dores e tendências do segmento. Reusa skill de benchmark de LPs existente. | Dossiê estruturado consolidado (formulário + research) |
-| 4 | **Criador de Assets** | Single agent + skills | Gera os artefatos da hipótese. Skills: `gerar-lp`, `gerar-ads` (3 variações), `gerar-copy`, `gerar-roteiro-video` (opcional) | LP (HTML+Tailwind) + 3 Ads (imagem+copy) |
-| 5 | **Gestor de Tráfego** | Agente LLM | Recebe a LP deployada, dispara o swarm sintético contra ela | Trigger do Miro Fish |
-| 6 | **Miro Fish (swarm)** | N mini-agentes LLM | Cada persona sintética analisa a LP (HTML+copy) e responde: achou interessante? clicaria? pagaria? feedback estruturado | Pool de respostas por persona |
-| 7 | **Análise de Performance** | Agente LLM | Agrega respostas do swarm, compara com thresholds, devolve veredito (ok / refinar / podar) | Veredito + métricas da LP |
+Coluna **Tipo no MVP** reflete o que está implementado em [agents-platform/src/](agents-platform/src/) hoje; a coluna **Tipo previsto** reflete o design original. Onde há divergência, o MVP economiza tokens com mock determinístico e fica marcado como "next phase" em §14.
 
-**Total: 6 agentes especialistas + 1 orquestrador + N personas Miro Fish (50–200 por LP).**
+| # | Agente | Tipo no MVP | Tipo previsto | Função | Output |
+|---|---|---|---|---|---|
+| 1 | **Orquestrador** | Agente LLM (Haiku 4.5) | Igual | Cria nó raiz a partir da submissão e, **após cada nó terminar o pipeline** (§5), decide expandir/refinar/podar/promover. 1 chamada LLM por nó. Não entra no meio do pipeline. | Estado da árvore + decisão por nó |
+| 2 | **Buscador / Análise de Concorrentes** | Determinístico (dossiê pré-fabricado por vertical) | Agente LLM | Valida e enriquece afirmações do founder: TAM/SAM/SOM, concorrentes, dores, tendências, auto-research jurídico. No MVP, fixtures por vertical em [pipeline-no.ts](agents-platform/src/workflows/pipeline-no.ts) (calibrados a partir de execuções LLM reais). | Dossiê consolidado para o Validador |
+| 3 | **Validador Aurora** | Agente LLM (Haiku 4.5) | Igual | Consome submissão Aurora + dossiê do Buscador e roda o scorecard de 16 critérios (§4). VETO regulatório (critério 10 = nota 1) é o único gate duro. | Score parcial + critérios + tags + recomendação |
+| 4a | **Criador de LP** | Determinístico (fixtures HTML rotativos) | Skill do Criador de Assets LLM | Gera 1 landing page. No MVP, [criador-lp.ts](agents-platform/src/tools/criador-lp.ts) escolhe 1 de 6 fixtures e injeta headline/subhead/CTA da hipótese. | HTML+Tailwind da LP |
+| 4b | **Criador de Ads** | Determinístico (fixtures de 3 cards) | Skill do mesmo Criador de Assets | Gera 3 variações de ad. No MVP, [criador-ads.ts](agents-platform/src/tools/criador-ads.ts) escolhe 1 de 6 fixtures de 3 cards. **Não há coordenação de copy entre LP e Ads no MVP** — design original previa agente único garantindo coerência. | 3 ads renderizáveis na UI |
+| 5 | **Gestor de Tráfego** | Determinístico (delay + handoff visual) | Agente LLM | Em produção, dispara campanhas reais no Meta/Google. No MVP, valida `lp_id`, simula propagação (~600ms) e emite `trafego_disparado` com `campanha_id`. | Trigger do Swarm |
+| 6 | **Swarm (Miro Fish)** | N agentes LLM em paralelo (Haiku 4.5) | Igual | N personas sintéticas analisam a LP (HTML+copy) em paralelo. Cada uma responde intenção de compra (0-10), se pagaria, feedback qualitativo. Concorrência limitada (3 em vôo), retry com backoff em 429. | Pool de respostas por persona |
+| 7 | **Análise de Performance** | Determinístico (thresholds) | Agente LLM | Agrega respostas do swarm e devolve veredito categórico. Lógica em [performance.ts](agents-platform/src/tools/performance.ts). | `taxa_pagaria`, `ctr_sintetico`, `intencao_media`, `sean_ellis_proxy`, `veredito` |
+
+**Total no MVP:** 1 Orquestrador (LLM) + 2 workers LLM (Validador, Swarm) + 5 workers determinísticos (Buscador, LP, Ads, Tráfego, Performance) + N personas (8 no MVP, escalável a 200).
+
+**Por que tanto determinístico no MVP?** Restrição de orçamento (~$2 USD para a demo) + foco em demonstrar o pattern e o ciclo (expandir/refinar/podar/promover) sem gastar tokens em tarefas onde o LLM agrega pouco frente ao custo (gerar LP a partir de fixture, agregar métricas, simular handoff). A migração desses agentes para LLM real está em §14 ("next phase").
 
 ## 4. Validador Aurora — o que ele vê e quando dá o "check"
 
@@ -232,36 +237,109 @@ Essa fronteira clara é parte da maturidade da solução: cada coisa no lugar ce
 
 ## 5. Fluxo de uma hipótese (espinha sequencial)
 
-Dentro de **cada nó da árvore** (uma hipótese), o pipeline é o do quadro original:
+Dentro de **cada nó da árvore** (uma hipótese), o pipeline é uma **cadeia determinística** (prompt-chain) de 7 agentes. O Orquestrador NÃO entra nesses 7 passos — ele só recebe o veredito ao fim, conforme §2.1. Ordem real implementada em [agents-platform/src/workflows/pipeline-no.ts](agents-platform/src/workflows/pipeline-no.ts):
 
 ```
 [hipótese ativa]
    ↓
-1. Validador Aurora      → score + tags
+1. Buscador / Bench       → dossiê (alimenta o Validador)
    ↓
-2. Buscador / Bench      → dossiê
+2. Validador Aurora       → score + tags + VETO se aplicável
+   ↓                          (se VETO: poda imediata, sem rodar 3-7)
+3. Criador de LP          → HTML da landing page (mock no MVP)
    ↓
-3. Criador de Assets     → LP + 3 Ads (assets reais)
+4. Criador de Ads         → 3 cards de ads (mock no MVP)
    ↓
-4. Deploy Vercel         → URL pública da LP
+   (transição visual: estado do nó vira "deployada" — deploy real Vercel é next phase)
    ↓
-5. Gestor de Tráfego     → dispara swarm
+5. Gestor de Tráfego      → handoff LP → Swarm (mock no MVP)
    ↓
-6. Miro Fish             → N personas analisam LP
+6. Swarm (Miro Fish)      → N personas LLM analisam a LP em paralelo
    ↓
-7. Análise de Performance → veredito + métricas
+7. Análise de Performance → veredito + métricas (determinístico)
    ↓
-[veredito devolve ao Orquestrador]
+[veredito devolve ao Orquestrador → decide expandir/refinar/podar/promover]
 ```
 
+**Observação importante:** a ordem do quadro original era `Validador → Buscador`. O código inverte para `Buscador → Validador` porque o Validador consome o dossiê do Buscador para preencher o critério 10 (auto-research jurídico) e validar discrepâncias com o que o founder declarou. Essa inversão é intencional.
+
 Ads são gerados, **renderizados como cards na UI**, mas **não publicados**. No pitch: *"a publicação está mapeada para a próxima fase; os assets já saem prontos."*
+
+### 5.1 Decisões internas — dois scores, refinamento e promoção
+
+A espinha acima esconde três pontos sutis que confundem na leitura rápida do fluxo: (a) o nó produz **dois scores independentes** que se combinam no score final; (b) **score baixo não é sentença automática** — existe caminho de refinamento; (c) o gate de **promoção tem números objetivos**. Esta seção explicita os três.
+
+#### Diagrama corrigido
+
+```mermaid
+flowchart TB
+  no[No da arvore]
+  no --> b["1. Buscador / Bench<br/>dossie por vertical"]
+  b --> v["2. Validador Aurora<br/>scorecard 16 criterios"]
+  v --> scoreAurora["Score Aurora 0-100<br/>aka score_parcial_fit"]
+  v -->|"VETO regulatorio (crit 10 = 1)"| podaVeto[Poda imediata]
+  scoreAurora --> lp["3. Criador LP"]
+  lp --> ads["4. Criador Ads"]
+  ads --> trafego["5. Gestor de Trafego"]
+  trafego --> swarm["6. Swarm<br/>N personas LLM"]
+  swarm --> perf["7. Performance Analyst"]
+  perf --> metricas["Metricas Performance<br/>taxa_pagaria, ctr, sean-ellis, intencao_media"]
+  metricas --> veredito["Veredito: aprovada / refinar / podada"]
+
+  scoreAurora -.alimenta.-> final["Score final multivariavel"]
+  metricas -.alimenta.-> final
+  custos["Custo em tokens (next phase)"] -.alimenta.-> final
+
+  veredito --> orq["Orquestrador decide<br/>(1 chamada LLM apos pipeline)"]
+  scoreAurora -.contexto.-> orq
+
+  orq -->|"Aurora >= 70 + aprovada + prof > 0"| promover
+  orq -->|"score baixo OU swarm fraco<br/>+ refinements < cap"| refinar
+  orq -->|"score baixo + swarm fraco<br/>+ refinements = cap"| poda
+  orq -->|"swarm OK + cabe na arvore"| expandir
+```
+
+#### Os dois scores — não confundir
+
+| `score_parcial_fit` (Validador Aurora) | Métricas (Performance Analyst) |
+|---|---|
+| Escala 0-100 | Cada métrica em sua escala própria |
+| Vem do scorecard de 16 critérios sobre o formulário | Vem das respostas do swarm sintético à LP |
+| Pesa fit estratégico, founder, vertical, moat, regulatório | Pesa intenção de compra, CTR sintético, sean-ellis |
+| VETO regulatório é o único gate "duro" | Veredito categórico (`aprovada` / `refinar` / `podada`) |
+| Entra no score final com peso `w4 = 0.35` | Entra com `w1·quanti = 0.30` + `w2·quali = 0.25` |
+
+Ambos alimentam o `score_final` multivariável de §9 — independentemente. Score Aurora alto com swarm fraco devolve score final mediano; o inverso também. **A combinação é o sinal**, não cada um isolado.
+
+#### Gates objetivos do Orquestrador
+
+| Decisão | Gate objetivo |
+|---|---|
+| **Promover** | `score_parcial_fit ≥ 70` AND `veredito = aprovada` AND `profundidade > 0` |
+| **Expandir** | `veredito = aprovada` AND `profundidade < MAX_DEPTH` AND `nos_totais + filhos ≤ MAX_NODES` |
+| **Refinar** | `veredito = refinar` OR (`score_parcial_fit < 60` AND `taxa_pagaria > 0.5`) — limitado a `MAX_REFINEMENTS_POR_NO` (=1) |
+| **Podar** | VETO regulatório (imediato) OR refinamentos esgotados sem aprovação |
+
+Veredito do Performance Analyst (thresholds em [agents-platform/src/tools/performance.ts](agents-platform/src/tools/performance.ts)):
+
+| Veredito | Gate |
+|---|---|
+| `aprovada` | `taxa_pagaria ≥ 0.30` AND `intencao_media ≥ 6.0` |
+| `refinar` | `taxa_pagaria ≥ 0.15` (falhou em algum critério de aprovação) |
+| `podada` | `taxa_pagaria < 0.15` |
+
+#### Refinamento — score baixo não é sentença
+
+Hipóteses com score Aurora baixo (< 60) **não são automaticamente podadas**. Se o swarm devolver sinal forte de compra (`taxa_pagaria > 0.5`), o Orquestrador pode acionar **refinamento**: a mesma tese, mas com nova LP + Ads (headline, subhead e CTA diferentes). O cap `MAX_REFINEMENTS_POR_NO = 1` garante que não viramos loop. A tese de fundo não muda — só a forma de comunicar.
+
+A motivação é honesta: às vezes a oferta é boa e o problema é a copy. Refinar barato em 1 iteração tira essa dúvida sem gastar a árvore inteira.
 
 ## 6. Plano de controle — árvore de hipóteses
 
 O Orquestrador-Agente mantém o estado da árvore e decide a cada veredito. Operações disponíveis:
 
-- **Expandir nó**: gerar N sub-hipóteses (variações de público, ângulo, formato).
-- **Refinar nó**: voltar ao Criador de Assets com instrução de variação, gerando nova LP+Ads no mesmo nó.
+- **Expandir nó**: gerar N sub-hipóteses (variações de público, ângulo, formato) — cria N filhos na fila pendente.
+- **Refinar nó**: criar um nó-variação com nova headline/subhead/CTA na mesma tese — a variação volta a rodar o pipeline (passos 3-7 com nova LP).
 - **Podar nó**: marcar como morto, encerrar exploração desse caminho.
 - **Promover nó**: marcar como candidato ao score final.
 
@@ -283,12 +361,11 @@ Esse é **o produto da apresentação**.
 
 ### Tela 1 — Home
 
-Dois modos de input no MVP:
+No MVP existe **apenas o modo formulário Aurora**: a Home renderiza o formulário completo da Aurora em 5 blocos (Founders, Solução, Progresso, Problema & Mercado, Expectativas — schema em §15). Pode ser preenchido ao vivo ou pré-carregado a partir de um JSON (fixture `submissao-healthtech.json`).
 
-- **Modo formulário Aurora** (modo "produção", também usado se a demo for de uma submissão real): a Home renderiza o formulário completo da Aurora em 5 blocos (Founders, Solução, Progresso, Problema & Mercado, Expectativas — schema em §15). Pode ser preenchido ao vivo ou pré-carregado a partir de um JSON.
-- **Modo prompt livre** (modo "wow" para o palco): um único campo de texto. Ao submeter, um agente auxiliar **auto-completa** os 5 blocos do formulário Aurora a partir do prompt + auto-research, e exibe rapidamente o que preencheu para o avaliador conferir/ajustar antes de seguir.
+> **Next phase:** modo "prompt livre" para o palco. Um campo único de texto, um agente auxiliar auto-completa os 5 blocos do formulário a partir do prompt + auto-research, e exibe o resultado para o avaliador conferir antes de seguir. Fora do escopo MVP — ver §14.
 
-Em ambos os modos, o que entra no Orquestrador é o mesmo JSON do formulário Aurora completo. Botão "Validar" navega para a tela da árvore.
+O que entra no Orquestrador é o JSON do formulário Aurora completo. Botão "Validar" navega para a tela da árvore.
 
 ### Tela 2 — Árvore ao vivo (centro)
 
@@ -317,83 +394,113 @@ Quando a árvore estabiliza (ou bate o cap):
 
 ## 8. Caps e guard-rails
 
-Envelope determinístico que protege a demo e o budget:
+Envelope determinístico que protege a demo e o budget. Valores reais em [agents-platform/src/lib/tipos.ts → `CAPS_DEFAULT`](agents-platform/src/lib/tipos.ts).
 
-| Parâmetro | Valor demo | Para quê |
-|---|---|---|
-| `MAX_DEPTH` | 2 (raiz → filhos → netos) | Árvore legível na tela |
-| `MAX_FAN_OUT_POR_NÓ` | 3 sub-hipóteses | Cabe sem ficar denso |
-| `MAX_NÓS_TOTAL` | ~10–12 | Cabe em 2–3 min de demo |
-| `MAX_PERSONAS_POR_LP` | 50 (com upgrade para 200 se a infra aguentar) | Suficiente para sinal estatístico no swarm |
-| `TOKEN_BUDGET_POR_NÓ` | 50k | Custo por hipótese ≈ $0.10–0.20 |
-| `TIMEOUT_POR_NÓ` | 90s | Se passar, marca `timeout` (estado visual) |
-| `MAX_REFINAMENTOS` | 1 por nó | Mostra refinamento sem loop infinito |
+| Parâmetro | Valor MVP | Valor previsto (doc original) | Por quê o ajuste |
+|---|---|---|---|
+| `MAX_DEPTH` | 2 (raiz → filhos → netos) | 2 | Sem mudança |
+| `MAX_FAN_OUT` | **2** sub-hipóteses | 3 | Reduzido para caber em 2-3 min de demo sem perder o ciclo |
+| `MAX_NODES` | **6** | ~10-12 | Reduzido pelo mesmo motivo |
+| `PERSONAS_POR_LP` | **8** | 50-200 | Redução grande — trade-off explícito de significância estatística por velocidade de demo. Custo por nó cai linearmente; em produção volta para 50+ |
+| `MAX_REFINEMENTS_POR_NO` | 1 por nó | 1 | Sem mudança |
+| `TIMEOUT_POR_NO_MS` | 90.000 (90s) | 90s | Sem mudança |
+| `TOKEN_BUDGET_POR_NO` | sem enforcement | 50k | Hoje o [cost-tracker](agents-platform/src/lib/cost-tracker.ts) só observa; não há gate por nó. Custo total observado fica ~$0.50-1.50 por run dependendo da árvore |
 
-Os caps **não bloqueiam** a apresentação visual — eles **garantem** que a árvore cresça até um tamanho demonstrável e pare em tempo apresentável.
+Os caps **não bloqueiam** a apresentação visual — eles **garantem** que a árvore cresça até um tamanho demonstrável e pare em tempo apresentável. Caps são **intocáveis pelo LLM**: se o Orquestrador pede ação que estoura cap, o código (`explorar-arvore.ts`) força ação compatível (em geral `promover` ou `podar`).
 
 ## 9. Score multivariável final
 
 A saída final agrega 4 dimensões (alinhada com o que a Aurora já usa no Vesting 1):
 
-| Dimensão | O que mede | Fonte |
-|---|---|---|
-| **Sinais quantitativos** | Conversão proxy, intenção de compra, CTR sintético | Miro Fish |
-| **Sinais qualitativos** | % "muito decepcionado" sem o produto (proxy Sean Ellis), feedback estruturado | Miro Fish (perguntas estruturadas às personas) |
-| **Sinais econômicos** | CAC estimado, range de LTV, custo total da validação | Heurística + custo real em tokens |
-| **Fit estratégico** | Aderência às teses Beyond/Extreme, vertical priorizada | Validador Aurora |
+| Dimensão | O que mede | Fonte | Peso MVP |
+|---|---|---|---|
+| **Quantitativos** | `taxa_pagaria * 0.6 + ctr_sintetico * 0.4` | Swarm + Performance Analyst | `w1 = 0.30` |
+| **Qualitativos** | `sean_ellis_proxy * 0.5 + (intencao_media/10) * 0.5` | Swarm + Performance Analyst | `w2 = 0.25` |
+| **Econômicos** | **Proxy fixo `0.7`** no MVP — em produção viria de CAC estimado + LTV + custo real em tokens por nó | (placeholder; cost-tracker já captura USD por agente mas não entra no score ainda) | `w3 = 0.10` |
+| **Fit estratégico** | `score_parcial_fit / 100` | Validador Aurora | `w4 = 0.35` |
 
-Fórmula simples para a demo: `score = w1·quanti + w2·quali + w3·econ + w4·fit`, com pesos visíveis na UI (slider para o avaliador ajustar e re-ranquear).
+Fórmula real em [explorar-arvore.ts → `calcularScoreFinal`](agents-platform/src/workflows/explorar-arvore.ts):
+
+```
+score_final = (0.30·quanti + 0.25·quali + 0.10·econ + 0.35·fit) * 100   → 0-100
+```
+
+**Aurora pesa 35% e Performance pesa 55% (quanti+quali). São inputs independentes que se combinam — não há substituição entre eles.** Score Aurora alto com swarm fraco devolve score final mediano; o inverso também.
+
+> **Next phase:** trocar o proxy `econ = 0.7` por um cálculo real usando o cost-tracker por nó (já implementado em [cost-tracker.ts](agents-platform/src/lib/cost-tracker.ts), só falta agregar). Pesos viram slider na UI para o avaliador re-ranquear ao vivo.
 
 ## 10. Stack técnica
 
-Tudo TypeScript, deploy único, mínima troca de contexto:
+Tudo TypeScript. Stack realmente implementada no MVP:
 
-| Camada | Escolha | Por quê |
-|---|---|---|
-| **Frontend** | Next.js + Tailwind + shadcn/ui | UI bonita em horas |
-| **Árvore visual** | React Flow | Pronto, performático, customizável |
-| **Realtime** | Socket.io (ou Liveblocks) | Stream de eventos orquestrador → UI |
-| **Agentes** | Mastra **ou** Vercel AI SDK | TS-first, streaming nativo, workflows |
-| **Deploy de LPs** | Vercel API | LP no ar em segundos |
-| **Modelos** | Claude Sonnet 4 (workers) + Haiku/GPT-4o-mini (personas Miro Fish) | Mistura custo/qualidade |
-| **Estado** | Em-process (Redis se houver tempo) | Stateless por execução |
+| Camada | Escolha MVP | Escolha prevista (doc original) | Observação |
+|---|---|---|---|
+| **Frontend** | Vite + React 18 + Zustand + Tailwind 3 | Next.js + Tailwind + shadcn/ui | Vite escolhido por boot mais rápido na demo; sem SSR necessário |
+| **Árvore visual** | React Flow 11 | React Flow | Sem mudança |
+| **Realtime** | SSE (Server-Sent Events) | Socket.io ou Liveblocks | SSE basta — fluxo é unidirecional backend → UI |
+| **Backend** | Node 20 + Express 5 + Anthropic SDK | Mastra ou Vercel AI SDK | Mastra está instalado mas o pipeline usa chamadas diretas via [anthropic-client.ts](agents-platform/src/lib/anthropic-client.ts) com cost-tracker |
+| **Deploy de LPs** | **Não implementado** (estado `deployada` é só marcador visual) | Vercel API | Fora do escopo do MVP — ver §14 |
+| **Modelos LLM** | **Claude Haiku 4.5 único** ($1/1M in, $5/1M out) | Sonnet 4 workers + Haiku/GPT-4o-mini personas | Restrição de orçamento (~$2 USD para a demo). Sonnet/Opus proibidos no MVP |
+| **Estado** | Em-process por run | Em-process ou Redis | Sem persistência cross-execução; refresh do server apaga tudo |
+| **Concorrência** | 1 run ativa por vez no backend | — | Evita rate-limit cumulativo do org Anthropic |
 
 ## 11. Diagrama final
 
+Padrão híbrido com loop explícito de controle. O Orquestrador (1 chamada LLM por nó, após o pipeline completo) decide `expandir / refinar / promover / podar` e realimenta a fila — `expandir` cria filhos, `refinar` cria variação, `promover` finaliza no score, `podar` encerra o caminho. Workers do pipeline fazem handoff direto entre si; o Orquestrador NÃO entra no meio.
+
 ```mermaid
 flowchart TB
-    input[Ideia raiz]
+    submissao[Submissao Aurora]
+    submissao --> raiz[Cria no raiz]
+    raiz --> fila[Fila pendente]
 
-    subgraph orchestrator[Orquestrador-Agente]
-        ctrl[Decide: expandir / refinar / podar<br/>Mantém estado da árvore<br/>Emite eventos para a UI]
-    end
-    input --> orchestrator
+    orq{"ORQUESTRADOR LLM Haiku<br/>1 chamada por no<br/>apos pipeline completo"}
 
-    subgraph hypothesis_pipeline[Por nó da árvore - rodam em paralelo]
+    orq -->|expandir| filhos[Cria filhos]
+    orq -->|refinar| variacao[Cria variacao]
+    orq -->|promover| scoreFinal["Score multivariavel<br/>quanti + quali + econ + fit"]
+    orq -->|podar| morta[Encerra caminho]
+
+    filhos --> fila
+    variacao --> fila
+
+    fila -->|Para cada no| b
+
+    subgraph pipeline [Pipeline DETERMINISTICO por no - handoff direto entre workers]
         direction LR
-        v[1. Validador Aurora<br/>scorecard + tags]
-        b[2. Buscador + Bench<br/>auto-research]
-        creator[3. Criador de Assets<br/>single agent + skills:<br/>LP, 3 Ads, copy, roteiro]
-        deploy[4. Deploy Vercel<br/>LP em URL pública]
-        trafego[5. Gestor de Trafego<br/>dispara swarm]
-        miro[6. Miro Fish<br/>50-200 personas]
-        perf[7. Analise de Performance<br/>thresholds + veredito]
+        b["1 Buscador<br/>mock no MVP<br/>dossie por vertical"]
+        v["2 Validador<br/>LLM Haiku<br/>scorecard 16 criterios"]
+        lp["3 Criador LP<br/>mock no MVP<br/>fixture HTML"]
+        ads["4 Criador Ads<br/>mock no MVP<br/>3 cards"]
+        trafego["5 Gestor Trafego<br/>mock no MVP<br/>handoff visual"]
+        swarm["6 Swarm Miro Fish<br/>LLM N personas paralelo"]
+        perf["7 Performance<br/>determinístico thresholds"]
 
-        v --> b --> creator
-        creator --> deploy
-        creator -.gera assets.-> ads[3 Ads renderizados<br/>cards na UI<br/>NAO publicados]
-        deploy --> trafego --> miro --> perf
+        b --> v
+        v -.VETO regulatorio.-> podaEarly[Poda imediata]
+        v --> lp --> ads --> trafego --> swarm --> perf
     end
 
-    orchestrator -.dispara nó.-> v
-    perf -.devolve veredito.-> orchestrator
+    perf -->|veredito + metricas| orq
 
-    orchestrator ==>|stream WebSocket| ui[Site da Demo<br/>- Arvore crescendo ao vivo<br/>- Painel LP iframe<br/>- Cards de Ads<br/>- Swarm visualizado<br/>- Metricas em tempo real]
-    ads -.exibe na UI.-> ui
+    scoreFinal --> relatorio["Relatorio executivo<br/>top 3 hipoteses ranqueadas"]
 
-    orchestrator --> score[Score multivariavel<br/>quanti + quali + econ + fit]
-    score --> report[Relatorio executivo<br/>top 3 hipoteses ranqueadas]
+    orq -.stream SSE.-> ui["Site da Demo<br/>arvore ao vivo<br/>painel LP iframe<br/>cards de Ads<br/>swarm visualizado<br/>metricas em tempo real"]
+    pipeline -.eventos SSE por passo.-> ui
 ```
+
+**Leitura do diagrama:**
+
+- **Entrada:** `Submissao Aurora` → `Cria no raiz` → entra na `Fila pendente`.
+- **Loop principal:** para cada nó da fila, roda o pipeline determinístico de 7 agentes (LP, Ads, Tráfego e Performance são mocks no MVP — ver §3). Workers fazem handoff direto entre si, sem o Orquestrador no meio.
+- **VETO regulatório:** se o Validador (passo 2) acionar VETO (critério 10 = nota 1), o nó vai direto para `Poda imediata` sem rodar os passos 3-7.
+- **Decisão pós-pipeline:** `Performance` devolve `veredito + métricas` para o Orquestrador (1 chamada LLM). Quatro saídas:
+  - `expandir` → cria filhos na fila (até `MAX_FAN_OUT`, respeitando `MAX_NODES` e `MAX_DEPTH`).
+  - `refinar` → cria variação do mesmo nó com nova LP+Ads (até `MAX_REFINEMENTS_POR_NO`).
+  - `promover` → alimenta o `Score multivariavel` final.
+  - `podar` → encerra esse caminho da árvore.
+- **Saídas terminais:** quando o loop termina (fila vazia ou caps estourados), o `Score multivariavel` (Aurora + Performance + econ + fit — §9) alimenta o `Relatorio executivo` com top 3 hipóteses ranqueadas.
+- **Stream SSE:** o Orquestrador emite eventos de decisão; cada passo do pipeline emite eventos de progresso. Ambos vão para o `Site da Demo` em tempo real (contrato completo em §7 do CONTEXTO).
 
 ## 12. Cronograma para amanhã (10–12 horas, 4–5 pessoas)
 
@@ -410,20 +517,27 @@ flowchart TB
 
 ## 13. Pontos do pitch que vendem maturidade
 
-- **"Orchestrator-Workers, não swarm"**: explica a escolha arquitetural e mostra que o time sabe a diferença.
+- **"Padrão híbrido — prompt-chain dentro do nó, supervisor entre nós"**: mostra que o time entende a taxonomia (Anthropic "Building Effective Agents") e escolheu o pattern certo pra cada nível. Pipeline interno é auditável e barato; decisão entre nós é agêntica e flexível.
 - **"Caps determinísticos como envelope, decisão agêntica dentro"**: combina o melhor dos dois mundos, foge do antipadrão "agente faz tudo".
 - **"Ads gerados, não publicados — próxima fase"**: honesto sobre o escopo do hackathon, sem prometer o que não está pronto.
 - **"Não substituímos o Comitê Aurora, alimentamos ele"**: posicionamento maduro contra automação cega.
 - **"Score multivariável, não veredito binário"**: pega o insight do Rodrigo sobre produtos com retorno modesto + custo baixíssimo de validação.
+- **"Dois scores independentes (Aurora + Performance) combinados no final"**: fit estratégico não substitui sinal de mercado e vice-versa.
 - **"~$0.10–0.20 por hipótese vs. semanas de pessoa"**: número claro de ROI para o júri.
 
 ## 14. O que ficou fora deliberadamente (mostrar no pitch como "next phase")
 
-- Publicação real de ads no Meta.
-- Plano paralelo de Tendências contínuas (na demo, snapshot pré-coletado alimenta o Criador).
+- Publicação real de ads no Meta/Google.
+- **Deploy real das LPs** via Vercel API (hoje só estado visual `deployada`).
+- **Modo prompt livre** na Tela 1 (hoje só modo formulário Aurora — §7).
+- **Buscador, Criador de LP/Ads, Gestor de Tráfego e Performance como agentes LLM** — todos rodam determinísticos no MVP (§3). A migração para LLM real está mapeada.
+- **Criador de Assets como agente único coordenado** com 4 skills (LP, Ads, copy, roteiro) — design previsto em §2.2 que garantiria coerência de copy entre LP e Ads.
+- **`econ` no score multivariável vindo do cost-tracker real** — hoje é proxy fixo `0.7` em [explorar-arvore.ts](agents-platform/src/workflows/explorar-arvore.ts). Cost-tracker já existe e captura tokens/USD; falta agregar por nó e penalizar no score.
+- Plano paralelo de Tendências contínuas (na demo, snapshot pré-coletado alimenta o Buscador).
 - Loop de refinamento profundo (na demo, máximo 1 refinamento por nó).
-- Persistência cross-execução (na demo, estado em-process).
+- Persistência cross-execução (na demo, estado em-process; refresh do servidor apaga tudo).
 - Avaliação de performance dos próprios ads (só LP via swarm).
+- **Modelos premium (Sonnet/Opus)** — proibidos no MVP por restrição de orçamento (~$2 USD). Pipeline já é compatível, só falta liberar verba.
 
 Cada um desses é uma frase no pitch: *"a v2 adiciona X, mapeada e estimada."*
 

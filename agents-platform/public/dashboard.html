@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Beyond Agents — Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      [data-estado="aprovada"], [data-estado="promovida"] { border-left-color: rgb(16, 185, 129); }
+      [data-estado="podada"], [data-estado="timeout"] { border-left-color: rgb(239, 68, 68); }
+      [data-estado="refinando"] { border-left-color: rgb(245, 158, 11); }
+      [data-estado="validando"], [data-estado="gerando"], [data-estado="deployada"] { border-left-color: rgb(59, 130, 246); }
+    </style>
+  </head>
+  <body class="bg-slate-950 text-slate-100 antialiased">
+    <header class="border-b border-slate-800/60 px-6 py-4">
+      <div class="mx-auto flex max-w-7xl items-center justify-between">
+        <div>
+          <h1 class="text-xl font-semibold">Beyond Agents — Dashboard</h1>
+          <p class="text-sm text-slate-400" id="header-meta">Carregue um relatório para começar.</p>
+        </div>
+        <input
+          id="file-input"
+          type="file"
+          accept=".json"
+          class="rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-200"
+        />
+      </div>
+    </header>
+
+    <main class="mx-auto max-w-7xl px-6 py-8">
+      <div id="empty-state" class="rounded-xl border border-dashed border-slate-700 p-12 text-center text-slate-400">
+        <p class="mb-4">Carregue um arquivo <code>out/arvore-*.json</code> gerado pelo CLI <code>npm run pipeline</code>.</p>
+        <p class="text-sm">Ou tente carregar automaticamente o mais recente:</p>
+        <button
+          id="autoload-btn"
+          class="mt-3 rounded-md bg-emerald-500 px-4 py-2 text-sm font-medium text-slate-950 hover:bg-emerald-400"
+        >
+          Tentar carregar automaticamente
+        </button>
+      </div>
+
+      <div id="content" class="hidden grid gap-6 lg:grid-cols-3">
+        <section class="lg:col-span-2 space-y-6">
+          <div>
+            <h2 class="mb-3 text-lg font-semibold">Árvore de hipóteses</h2>
+            <div id="tree-root" class="space-y-3"></div>
+          </div>
+        </section>
+
+        <aside class="space-y-6">
+          <div class="rounded-xl border border-slate-800 bg-slate-900/40 p-5">
+            <h3 class="text-sm font-semibold text-slate-300">Top 3</h3>
+            <ol id="top3-list" class="mt-3 space-y-2 text-sm"></ol>
+          </div>
+          <div class="rounded-xl border border-slate-800 bg-slate-900/40 p-5">
+            <h3 class="text-sm font-semibold text-slate-300">Custo da execução</h3>
+            <dl id="cost-block" class="mt-3 space-y-2 text-sm"></dl>
+          </div>
+          <div class="rounded-xl border border-slate-800 bg-slate-900/40 p-5">
+            <h3 class="text-sm font-semibold text-slate-300">LP do nó selecionado</h3>
+            <iframe
+              id="lp-frame"
+              class="mt-3 h-96 w-full rounded-md bg-white"
+              srcdoc="<div style='font-family:sans-serif;padding:20px;color:#999'>Selecione um nó para ver a LP.</div>"
+            ></iframe>
+          </div>
+          <div class="rounded-xl border border-slate-800 bg-slate-900/40 p-5">
+            <h3 class="text-sm font-semibold text-slate-300">Ads do nó selecionado</h3>
+            <iframe
+              id="ads-frame"
+              class="mt-3 h-64 w-full rounded-md bg-slate-100"
+              srcdoc="<div style='font-family:sans-serif;padding:20px;color:#999'>Selecione um nó para ver os ads.</div>"
+            ></iframe>
+          </div>
+          <div class="rounded-xl border border-slate-800 bg-slate-900/40 p-5">
+            <h3 class="text-sm font-semibold text-slate-300">Feedback do swarm</h3>
+            <ul id="swarm-feedback" class="mt-3 space-y-2 text-xs"></ul>
+          </div>
+        </aside>
+      </div>
+    </main>
+
+    <script>
+      const $ = (id) => document.getElementById(id);
+      let arvore = [];
+      let custoTotal = null;
+      let custoPorAgente = null;
+      let ranking = [];
+
+      function clearChildren(el) {
+        while (el.firstChild) el.removeChild(el.firstChild);
+      }
+
+      function renderTree() {
+        const root = $('tree-root');
+        clearChildren(root);
+        const byParent = new Map();
+        for (const n of arvore) {
+          const arr = byParent.get(n.parent_id) ?? [];
+          arr.push(n);
+          byParent.set(n.parent_id, arr);
+        }
+        const render = (parentId, container, depth) => {
+          const children = byParent.get(parentId) ?? [];
+          for (const no of children) {
+            const card = document.createElement('div');
+            card.className = 'rounded-md border-l-4 border-slate-700 bg-slate-900/60 p-3 cursor-pointer hover:bg-slate-900';
+            card.dataset.estado = no.estado;
+            card.dataset.noId = no.id;
+            card.style.marginLeft = `${depth * 16}px`;
+            card.innerHTML = `
+              <div class="flex items-center justify-between">
+                <div>
+                  <span class="text-xs font-mono text-slate-500">${no.id}</span>
+                  <span class="ml-2 text-xs uppercase tracking-wide text-slate-400">${no.estado}</span>
+                </div>
+                <div class="text-right text-xs">
+                  ${no.validador ? `<span class="text-slate-400">Aurora </span><strong class="${no.validador.score_parcial_fit >= 80 ? 'text-emerald-400' : no.validador.score_parcial_fit >= 60 ? 'text-amber-400' : 'text-rose-400'}">${no.validador.score_parcial_fit.toFixed(1)}</strong>` : ''}
+                  ${no.score_final != null ? ` · <span class="text-slate-400">Final </span><strong class="text-emerald-400">${no.score_final.toFixed(1)}</strong>` : ''}
+                </div>
+              </div>
+              <div class="mt-1 font-medium">${no.hipotese.titulo}</div>
+              <div class="text-xs text-slate-400">${no.hipotese.publico_alvo}</div>
+              ${no.performance ? `<div class="mt-1 text-xs text-slate-500">${(no.performance.taxa_pagaria*100).toFixed(0)}% pagariam · int. ${no.performance.intencao_media.toFixed(1)}/10 · Sean-Ellis ${(no.performance.sean_ellis_proxy*100).toFixed(0)}%</div>` : ''}
+            `;
+            card.addEventListener('click', () => selectNode(no));
+            container.appendChild(card);
+            render(no.id, container, depth + 1);
+          }
+        };
+        render(null, root, 0);
+      }
+
+      function selectNode(no) {
+        const lpFrame = $('lp-frame');
+        const adsFrame = $('ads-frame');
+        const feedback = $('swarm-feedback');
+        if (no.lp?.html) {
+          lpFrame.srcdoc = no.lp.html;
+        } else {
+          lpFrame.srcdoc = "<div style='padding:20px;font-family:sans-serif;color:#999'>Este nó não chegou a gerar LP (provavelmente foi vetado).</div>";
+        }
+        if (no.ads?.html) {
+          adsFrame.srcdoc = `<html><head><script src="https://cdn.tailwindcss.com"></scr` + `ipt><style>body{margin:0;padding:16px;background:#f1f5f9;font-family:sans-serif}</style></head><body>${no.ads.html}</body></html>`;
+        } else {
+          adsFrame.srcdoc = "<div style='padding:20px;font-family:sans-serif;color:#999'>Sem ads neste nó.</div>";
+        }
+        clearChildren(feedback);
+        const respostas = (no.swarm?.respostas ?? []).filter((r) => !r.erro).slice(0, 8);
+        if (respostas.length === 0) {
+          feedback.innerHTML = '<li class="text-slate-500">Sem swarm para este nó.</li>';
+        } else {
+          for (const r of respostas) {
+            const li = document.createElement('li');
+            li.className = 'border-l-2 border-slate-700 pl-2';
+            li.innerHTML = `<div class="text-slate-300"><strong>${r.nome}</strong> <span class="text-slate-500">(${r.ocupacao})</span></div>
+              <div class="text-slate-500">${r.pagaria ? '✓ pagaria' : '✗ não pagaria'} · int. ${r.intencao_compra_0_a_10}/10</div>
+              <div class="text-slate-400 italic">"${r.feedback_qualitativo}"</div>`;
+            feedback.appendChild(li);
+          }
+        }
+      }
+
+      function renderTop3() {
+        const list = $('top3-list');
+        clearChildren(list);
+        if (ranking.length === 0) {
+          list.innerHTML = '<li class="text-slate-500">Nenhum nó promovido.</li>';
+          return;
+        }
+        ranking.slice(0, 3).forEach((r, i) => {
+          const li = document.createElement('li');
+          li.className = 'flex items-center justify-between';
+          li.innerHTML = `<span>${i + 1}. <span class="text-slate-300">${r.no_id ?? r.no?.id}</span></span><strong class="text-emerald-400">${(r.score_final).toFixed(1)}</strong>`;
+          list.appendChild(li);
+        });
+      }
+
+      function renderCost() {
+        const block = $('cost-block');
+        clearChildren(block);
+        if (!custoTotal) {
+          block.innerHTML = '<dt class="text-slate-500">Custo não registrado neste arquivo (carregue um relatório-*.json).</dt>';
+          return;
+        }
+        const rows = [
+          ['Chamadas', custoTotal.calls],
+          ['Tokens input', custoTotal.input_tokens.toLocaleString('pt-BR')],
+          ['Tokens output', custoTotal.output_tokens.toLocaleString('pt-BR')],
+          ['Total USD', '$' + custoTotal.cost_usd.toFixed(4)],
+        ];
+        for (const [k, v] of rows) {
+          const dt = document.createElement('dt');
+          dt.className = 'flex justify-between';
+          dt.innerHTML = `<span class="text-slate-400">${k}</span><span class="font-mono text-emerald-300">${v}</span>`;
+          block.appendChild(dt);
+        }
+        if (custoPorAgente) {
+          const hr = document.createElement('div');
+          hr.className = 'mt-2 border-t border-slate-800 pt-2 text-xs text-slate-400';
+          hr.textContent = 'Por agente';
+          block.appendChild(hr);
+          for (const [agente, dados] of Object.entries(custoPorAgente)) {
+            const row = document.createElement('dt');
+            row.className = 'flex justify-between text-xs';
+            row.innerHTML = `<span class="text-slate-500">${agente}</span><span class="font-mono text-slate-300">${dados.calls}× · $${dados.cost_usd.toFixed(4)}</span>`;
+            block.appendChild(row);
+          }
+        }
+      }
+
+      function loadRelatorioCompleto(data) {
+        // Suporta dois formatos: arvore-*.json (array de nós) ou relatorio-*.json (objeto)
+        if (Array.isArray(data)) {
+          arvore = data;
+          custoTotal = null;
+          custoPorAgente = null;
+          ranking = arvore
+            .filter((n) => n.score_final != null)
+            .sort((a, b) => (b.score_final ?? 0) - (a.score_final ?? 0))
+            .map((n) => ({ no_id: n.id, score_final: n.score_final }));
+          $('header-meta').textContent = `${arvore.length} nó(s) — formato: árvore`;
+        } else if (data.arvore) {
+          arvore = data.arvore;
+          custoTotal = data.custo_total ?? null;
+          custoPorAgente = data.custo_por_agente ?? null;
+          ranking = data.ranking ?? [];
+          $('header-meta').textContent = `${arvore.length} nó(s) — ${data.solucao ?? ''} (${data.vertical ?? ''})`;
+        } else {
+          alert('Formato não reconhecido.');
+          return;
+        }
+        $('empty-state').classList.add('hidden');
+        $('content').classList.remove('hidden');
+        renderTree();
+        renderTop3();
+        renderCost();
+        if (arvore.length > 0) {
+          // Seleciona top 1 do ranking ou raiz
+          const id = ranking[0]?.no_id ?? arvore[0].id;
+          const escolhido = arvore.find((n) => n.id === id);
+          if (escolhido) selectNode(escolhido);
+        }
+      }
+
+      $('file-input').addEventListener('change', async (e) => {
+        const f = e.target.files?.[0];
+        if (!f) return;
+        const text = await f.text();
+        loadRelatorioCompleto(JSON.parse(text));
+      });
+
+      $('autoload-btn').addEventListener('click', async () => {
+        // Tenta achar via fetch — só funciona se a página for servida via http server
+        // dentro de agents-platform/. Em file://, vai falhar e mostrar alerta.
+        try {
+          const resp = await fetch('../out/');
+          if (!resp.ok) throw new Error('Diretório out/ não acessível por HTTP.');
+          const html = await resp.text();
+          const matches = [...html.matchAll(/href="(arvore-[^"]+\.json)"/g)].map((m) => m[1]);
+          if (matches.length === 0) throw new Error('Nenhum arvore-*.json em out/');
+          matches.sort();
+          const latest = matches[matches.length - 1];
+          const data = await fetch(`../out/${latest}`).then((r) => r.json());
+          loadRelatorioCompleto(data);
+        } catch (err) {
+          alert(
+            'Não consegui carregar automaticamente. Sirva a pasta com:\n\n  cd agents-platform && npx http-server -p 8000\n\nE abra http://localhost:8000/public/dashboard.html\n\nOu use o seletor de arquivos acima.\n\nErro: ' + err.message,
+          );
+        }
+      });
+    </script>
+  </body>
+</html>

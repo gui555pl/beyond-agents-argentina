@@ -1,0 +1,182 @@
+[
+  {
+    "id": "p01",
+    "nome": "Dr. Carlos Mendonça",
+    "idade": 52,
+    "ocupacao": "Clínico geral, dono de consultório próprio em Belo Horizonte (atende sozinho)",
+    "dor_principal": "Perde 30% das consultas por falta (no-show) e não tem secretária para confirmar",
+    "intencao_de_compra_baseline": 7,
+    "vies": "Conservador com tecnologia — usa caderno e WhatsApp, mas reconhece que perde dinheiro"
+  },
+  {
+    "id": "p02",
+    "nome": "Dra. Juliana Pacheco",
+    "idade": 38,
+    "ocupacao": "Pediatra, sócia em clínica com 4 médicos em Curitiba",
+    "dor_principal": "Secretária gasta 6h/dia em WhatsApp confirmando consultas e reagendando",
+    "intencao_de_compra_baseline": 8,
+    "vies": "Early adopter, já testou 3 sistemas e cancelou por não usar IA"
+  },
+  {
+    "id": "p03",
+    "nome": "Roberto Alves",
+    "idade": 45,
+    "ocupacao": "Gestor administrativo de rede de 8 clínicas dermatológicas em São Paulo",
+    "dor_principal": "Não consegue padronizar prontuário entre unidades; cada médico anota do jeito que quer",
+    "intencao_de_compra_baseline": 9,
+    "vies": "Compra com base em ROI, exige integração TISS e BI"
+  },
+  {
+    "id": "p04",
+    "nome": "Dra. Marina Castro",
+    "idade": 29,
+    "ocupacao": "Ginecologista recém-formada abrindo consultório próprio em Salvador",
+    "dor_principal": "Não tem caixa para sistema enterprise (R$ 4k/mês inviável); usa Google Sheets",
+    "intencao_de_compra_baseline": 6,
+    "vies": "Sensível a preço; busca solução barata e simples"
+  },
+  {
+    "id": "p05",
+    "nome": "Dr. Henrique Ozawa",
+    "idade": 61,
+    "ocupacao": "Cardiologista com consultório próprio + atende em hospital, Rio de Janeiro",
+    "dor_principal": "Resistente a mudar de sistema; já tem o iClinic há 8 anos",
+    "intencao_de_compra_baseline": 3,
+    "vies": "Avesso a mudança, só troca se vir colega trocando primeiro"
+  },
+  {
+    "id": "p06",
+    "nome": "Patrícia Lemos",
+    "idade": 34,
+    "ocupacao": "Secretária-chefe de clínica oftalmológica com 5 médicos em Florianópolis",
+    "dor_principal": "Confunde-se com tantos canais (telefone + WhatsApp + agenda papel + planilha)",
+    "intencao_de_compra_baseline": 8,
+    "vies": "Quem usa no dia a dia; influencia decisão do dono, mas não decide"
+  },
+  {
+    "id": "p07",
+    "nome": "Dr. Fernando Bueno",
+    "idade": 47,
+    "ocupacao": "Ortopedista, sócio de clínica com 6 médicos e fisioterapeutas em Goiânia",
+    "dor_principal": "Glosa de operadora come 10% do faturamento por erro no preenchimento de guias TISS",
+    "intencao_de_compra_baseline": 7,
+    "vies": "Quer integração TISS forte; o resto é secundário"
+  },
+  {
+    "id": "p08",
+    "nome": "Dra. Sofia Albuquerque",
+    "idade": 41,
+    "ocupacao": "Psiquiatra em consultório solo, atende híbrido (presencial + telemedicina) no Recife",
+    "dor_principal": "Anotação manual do prontuário rouba 1h por dia depois das consultas",
+    "intencao_de_compra_baseline": 9,
+    "vies": "Adora IA, já usa ChatGPT pessoal — quer integração nativa com Whisper"
+  },
+  {
+    "id": "p09",
+    "nome": "Dr. Anderson Vital",
+    "idade": 39,
+    "ocupacao": "Endocrinologista, dono de 2 consultórios em Brasília",
+    "dor_principal": "Quer escalar para mais 2 unidades em 12 meses, mas não tem visibilidade gerencial",
+    "intencao_de_compra_baseline": 8,
+    "vies": "Visão de growth, compra se vir dashboard executivo"
+  },
+  {
+    "id": "p10",
+    "nome": "Lúcia Tavares",
+    "idade": 56,
+    "ocupacao": "Administradora de clínica popular em zona leste de São Paulo (R$ 80/consulta)",
+    "dor_principal": "Margem apertada; cada R$ 100 a mais em custo dói; quer reduzir tempo de espera",
+    "intencao_de_compra_baseline": 5,
+    "vies": "Foco em custo unitário; só compra se for <R$ 800/mês"
+  },
+  {
+    "id": "p11",
+    "nome": "Dr. Eduardo Pacheco",
+    "idade": 50,
+    "ocupacao": "Diretor médico de rede de 12 clínicas de medicina ocupacional em SP",
+    "dor_principal": "Auditoria interna mostra 22% de prontuários incompletos; risco regulatório alto",
+    "intencao_de_compra_baseline": 8,
+    "vies": "Risco-averso; quer compliance acima de tudo (LGPD, CFM, eSocial)"
+  },
+  {
+    "id": "p12",
+    "nome": "Dra. Tatiana Quintana",
+    "idade": 36,
+    "ocupacao": "Dermatologista estética em São Paulo, alto ticket (R$ 800-2k/sessão)",
+    "dor_principal": "Cliente de alto poder aquisitivo exige experiência premium; secretária no WhatsApp é gargalo",
+    "intencao_de_compra_baseline": 8,
+    "vies": "Quer experiência polida; UI bonita pesa na decisão"
+  },
+  {
+    "id": "p13",
+    "nome": "Marcos Brandão",
+    "idade": 43,
+    "ocupacao": "CFO de holding de 18 clínicas multi-especialidade em Porto Alegre",
+    "dor_principal": "Falta visão consolidada de receita por médico, unidade, especialidade",
+    "intencao_de_compra_baseline": 9,
+    "vies": "Compra B2B clássica; exige API, SSO, BI exportável"
+  },
+  {
+    "id": "p14",
+    "nome": "Dra. Beatriz Nogueira",
+    "idade": 32,
+    "ocupacao": "Nutricionista, consultório próprio + atendimento online em Belo Horizonte",
+    "dor_principal": "Não consegue acompanhar evolução do paciente entre consultas (perde follow-up)",
+    "intencao_de_compra_baseline": 7,
+    "vies": "Profissão não-médica; preço importa muito, R$ 400/mês é teto"
+  },
+  {
+    "id": "p15",
+    "nome": "Dr. Ricardo Maia",
+    "idade": 58,
+    "ocupacao": "Urologista, consultório solo de alto padrão em Brasília (2 dias/semana)",
+    "dor_principal": "Volume baixo; sistema enterprise é caro e ele não precisa de robustez",
+    "intencao_de_compra_baseline": 4,
+    "vies": "Acha que IA é hype; cético com qualquer novidade"
+  },
+  {
+    "id": "p16",
+    "nome": "Camila Furtado",
+    "idade": 31,
+    "ocupacao": "Gerente de operações de franquia de clínica popular (28 unidades)",
+    "dor_principal": "Cada franqueado usa sistema diferente; impossível padronizar dados e ter visão de rede",
+    "intencao_de_compra_baseline": 9,
+    "vies": "Decisão centralizada; se aprovar, gera 28 contratos de uma vez"
+  },
+  {
+    "id": "p17",
+    "nome": "Dr. Paulo Resende",
+    "idade": 44,
+    "ocupacao": "Médico de família com consultório próprio + atende por convênio em SP",
+    "dor_principal": "Burocracia de operadoras consome 40% do tempo administrativo da clínica",
+    "intencao_de_compra_baseline": 7,
+    "vies": "Quer reduzir trabalho administrativo; aceita IA se for confiável"
+  },
+  {
+    "id": "p18",
+    "nome": "Dra. Aline Saraiva",
+    "idade": 35,
+    "ocupacao": "Pediatra em clínica colaborativa (coworking médico) em Salvador",
+    "dor_principal": "Compartilha estrutura mas precisa de prontuário próprio segregado",
+    "intencao_de_compra_baseline": 6,
+    "vies": "Compra individualmente; teto R$ 600/mês"
+  },
+  {
+    "id": "p19",
+    "nome": "Diogo Antunes",
+    "idade": 38,
+    "ocupacao": "Empreendedor não-médico, dono de 3 clínicas de psicologia em SP (modelo escalável)",
+    "dor_principal": "Não tem KPI claro de produtividade por psicólogo; tudo no Excel",
+    "intencao_de_compra_baseline": 8,
+    "vies": "Visão de tech-founder; valoriza API, automação, growth metrics"
+  },
+  {
+    "id": "p20",
+    "nome": "Dra. Renata Vilanova",
+    "idade": 49,
+    "ocupacao": "Geriatra em clínica de 3 médicos especializada em idosos em Curitiba",
+    "dor_principal": "Pacientes idosos não respondem WhatsApp; precisa de ligação humana mesmo",
+    "intencao_de_compra_baseline": 5,
+    "vies": "Mercado específico, desconfia de soluções genéricas"
+  }
+]

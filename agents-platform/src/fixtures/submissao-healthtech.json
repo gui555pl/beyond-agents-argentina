@@ -1,0 +1,64 @@
+{
+  "submissao_aurora": {
+    "founders": [
+      {
+        "nome": "Dra. Helena Vieira",
+        "telefone": "+55 11 99876-5432",
+        "email": "helena@medflow.health",
+        "genero": "Feminino",
+        "data_nascimento": "1988-07-22",
+        "cidade": "São Paulo",
+        "redes_sociais": "@drahelenavieira",
+        "educacao": "Medicina USP + Residência em Clínica Geral HC-FMUSP + MBA Saúde Insper",
+        "historico_trabalho": "8 anos como clínica geral em rede própria de 3 consultórios (vendida em 2023). 2 anos como Diretora Médica da telemedicina Conexa (escala de 50 para 800 médicos). Atualmente full-time na MedFlow há 11 meses.",
+        "linkedin": "linkedin.com/in/helenavieira-md",
+        "conquistas": "Exit de rede de consultórios em 2023 (R$ 8M). Escalou operação médica da Conexa em 16x. Publicou 4 papers sobre atenção primária digital."
+      },
+      {
+        "nome": "Rafael Tanaka",
+        "telefone": "+55 11 98123-4567",
+        "email": "rafael@medflow.health",
+        "genero": "Masculino",
+        "data_nascimento": "1990-11-03",
+        "cidade": "São Paulo",
+        "redes_sociais": "@rafatanaka",
+        "educacao": "Engenharia da Computação ITA + Mestrado em IA aplicada à saúde USP",
+        "historico_trabalho": "5 anos como Tech Lead na Hospital Care (plataforma de gestão hospitalar). 3 anos em startup de prontuário eletrônico (Memed concorrente, exit 2022). Full-time MedFlow há 11 meses.",
+        "linkedin": "linkedin.com/in/rafaeltanaka-eng",
+        "conquistas": "Arquiteto principal do PEP da Hospital Care que atende 200+ hospitais. Patent pendente em algoritmo de triagem assistida."
+      }
+    ],
+    "solucao": {
+      "nome": "MedFlow",
+      "descricao_50_chars": "Copiloto IA para gestão de clínicas pequenas",
+      "por_que_escolheu": "Helena viveu a dor por 8 anos gerindo 3 consultórios — secretárias afogadas em WhatsApp, no-show de 30%, prontuário em papel ou em sistemas caros demais para o porte. Rafael construiu solução pra hospitais grandes, mas o mid-market está descoberto. Combinamos o lado clínico (Helena) com o lado de produto (Rafael).",
+      "vertical": "healthtech",
+      "pitch_deck_url": "https://medflow.health/deck",
+      "video_demo_url": "https://medflow.health/demo"
+    },
+    "progresso": {
+      "tempo_de_trabalho": "11 meses full-time os dois fundadores",
+      "cash_balance_e_burn_rate": "R$ 420k em caixa, R$ 55k/mês burn (2 founders + 2 devs + 1 ops). Runway 7-8 meses.",
+      "projecao_faturamento": "Ano 1: R$ 900k ARR (60 clínicas a R$ 1.250/mês). Ano 2: R$ 4.5M ARR. Premissa: ticket médio R$ 1.250/mês, churn 4% ao mês, CAC R$ 2.800 via inbound + parceria com sociedades médicas.",
+      "stack_tecnologico": "Next.js + Supabase + WhatsApp Business API + Claude Sonnet 4 para triagem assistida + Whisper para transcrição de consulta. Stack 100% vibe coding com IA — sem pesquisa fundamental.",
+      "reduz_custos_com_infra_beyond": true,
+      "mvp_em_4_semanas": "Sim — MVP rodando há 5 meses, 12 clínicas em uso ativo (PMF parcial). Em 4 semanas conseguimos virar produto self-serve completo."
+    },
+    "problema_mercado": {
+      "por_que_essa_ideia": "Helena gerenciou 3 consultórios por 8 anos. A dor é universal entre clínicos com 1-5 unidades: 30% no-show, secretária sobrecarregada, sistemas caros (R$ 3-8k/mês para algo enterprise demais), ou caderno e WhatsApp. O mid-market médico brasileiro (clínicas pequenas) é o maior segmento subatendido — 180k+ estabelecimentos com 1-10 médicos.",
+      "dor_latente_e_evidencias": "Helena entrevistou 47 donos de clínicas pequenas em 2025. 89% reportam no-show acima de 25%. 76% usam WhatsApp manual + caderno. 100% disseram que sistemas enterprise (Tasy, MV) são caros demais. 12 clínicas no MVP atual reduziram no-show em média 14 pontos percentuais em 60 dias.",
+      "publico_problema_solucao": "Para clínicas pequenas (1-10 médicos) que perdem 25-35% de receita em no-show e gastam 4-6h/dia da secretária em WhatsApp manual, oferecemos um copiloto de IA que confirma consultas, faz triagem inicial via WhatsApp, gera prontuário a partir da consulta gravada e cobra automaticamente.",
+      "diferencial_moat": "Modelo de triagem fine-tuned em 80k+ atendimentos de atenção primária (parceria com Conexa de Helena). Patente pendente do Rafael em algoritmo de classificação de urgência. Concorrentes usam GPT genérico sem contexto médico brasileiro.",
+      "concorrentes_e_lacunas": "Doctoralia (foco em marketplace de agendamento, não em gestão). iClinic (sistema bom mas sem IA generativa, vendido para hospitais). Memed (foco em receita digital). Nenhum cobre o stack completo no-show + triagem + prontuário + cobrança em IA.",
+      "tam_sam_som": "TAM: R$ 8.5Bi (todas clínicas e consultórios no Brasil). SAM: R$ 2.1Bi (180k clínicas pequenas com 1-10 médicos). SOM: R$ 250M em 3 anos (~2% do SAM).",
+      "escalabilidade_sem_custo_proporcional": "SaaS puro com custo marginal por clínica próximo de zero. WhatsApp API tem custo variável de R$ 0.05/mensagem, mas repassado no plano. Inferência IA: R$ 8-12/clínica/mês — diluído no ticket de R$ 1.250.",
+      "canais_de_venda": "Rede direta de Helena (1.200+ médicos em comunidade WhatsApp), parceria fechada com 2 sociedades médicas (SBMFC e SBC), pilots gratuitos viralizando.",
+      "barreira_legal_imediata": false
+    },
+    "expectativas": {
+      "convencimento": "Beyond tem case na vertical (Aurora investiu em outras healthtechs). Queremos acelerar com canal institucional e validação de tese para Série A em 18 meses.",
+      "areas_de_ajuda": "Vendas para redes médias de clínicas (Tier 2), Desenvolvimento de integração com TISS/operadoras, Jurídico para LGPD em saúde, Contatos com operadoras (SulAmérica, Hapvida)."
+    }
+  },
+  "hipotese_raiz": "Copiloto IA para gestão de clínicas pequenas brasileiras (1-10 médicos), foco em no-show + triagem + prontuário + cobrança, canal direto via rede da founder + sociedades médicas."
+}

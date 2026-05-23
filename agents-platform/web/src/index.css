@@ -1,0 +1,75 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background-color: #0a0a0f; /* canvas */
+  color: #f0efe8; /* ink */
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Scrollbar discreta no tema Aurora */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: #2a2a40; /* hairline */
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #3a3a55; /* hairline-strong */
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* React Flow ajustado pro canvas Aurora */
+.react-flow__edge-path {
+  stroke: #3a3a55; /* hairline-strong */
+  stroke-width: 2;
+}
+.react-flow__edge.animated .react-flow__edge-path {
+  stroke: #7c3aed; /* primary */
+  stroke-dasharray: 5;
+  animation: dashdraw 0.5s linear infinite;
+}
+@keyframes dashdraw {
+  from { stroke-dashoffset: 10; }
+  to { stroke-dashoffset: 0; }
+}
+.react-flow__handle {
+  width: 8px;
+  height: 8px;
+  background: #6b6880; /* muted */
+  border: 2px solid #0a0a0f; /* canvas */
+}
+.react-flow__controls {
+  background: #1a1a27; /* surface-card */
+  border: 1px solid #2a2a40; /* hairline */
+  border-radius: 8px;
+  overflow: hidden;
+}
+.react-flow__controls-button {
+  background: #1a1a27;
+  border-bottom: 1px solid #2a2a40;
+  fill: #a8a5b8; /* body */
+}
+.react-flow__controls-button:hover {
+  background: #252536; /* surface-strong */
+}
+.react-flow__background {
+  background: #0a0a0f; /* canvas */
+}
+.react-flow__attribution {
+  display: none !important;
+}
