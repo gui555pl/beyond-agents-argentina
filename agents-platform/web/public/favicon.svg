@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Beyond Agents · Aurora">
+  <title>Beyond Agents · Aurora</title>
+  <!-- Fundo Aurora Violet com cantos arredondados (rounded.lg do design system) -->
+  <rect width="64" height="64" rx="14" fill="#7c3aed"/>
+
+  <!-- Linhas conectando os nós (mini árvore de hipóteses  símbolo do produto) -->
+  <path d="M 32 22 L 22 44 M 32 22 L 42 44"
+        stroke="#f0efe8" stroke-width="2" stroke-linecap="round"
+        opacity="0.55"/>
+
+  <!-- Nó raiz -->
+  <circle cx="32" cy="22" r="5.5" fill="#f0efe8"/>
+
+  <!-- Nós filhos -->
+  <circle cx="22" cy="44" r="4.5" fill="#f0efe8"/>
+  <circle cx="42" cy="44" r="4.5" fill="#f0efe8"/>
+</svg>
