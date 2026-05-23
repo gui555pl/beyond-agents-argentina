@@ -135,14 +135,25 @@ const corsOptions: cors.CorsOptions =
 app.use(cors(corsOptions));
 app.use(express.json({ limit: '2mb' }));
 
-// Rate limit em `POST /api/submissions` — máx 1 por minuto por IP
-const submissionLimiter = rateLimit({
-  windowMs: 60_000,
-  limit: 1,
-  standardHeaders: 'draft-7',
-  legacyHeaders: false,
-  message: { erro: 'Muitas submissões — aguarde 1 minuto.' },
-});
+// Rate limit em `POST /api/submissions`. Default generoso para demo/apresentação
+// (vários cliques acidentais no mesmo IP). Em produção pública, setar
+// SUBMISSION_RATE_LIMIT=3 no env do servidor.
+const SUBMISSION_RATE_LIMIT = Math.max(
+  0,
+  parseInt(process.env.SUBMISSION_RATE_LIMIT ?? '15', 10) || 15,
+);
+const submissionLimiter =
+  SUBMISSION_RATE_LIMIT > 0
+    ? rateLimit({
+        windowMs: 60_000,
+        limit: SUBMISSION_RATE_LIMIT,
+        standardHeaders: 'draft-7',
+        legacyHeaders: false,
+        message: {
+          erro: `Muitas submissões — aguarde 1 minuto (limite: ${SUBMISSION_RATE_LIMIT}/min por IP).`,
+        },
+      })
+    : (_req: Request, _res: Response, next: () => void) => next();
 
 app.get('/api/health', (_req, res) => {
   const q = queueStats();

@@ -5,6 +5,7 @@ import type {
   SubmissionInfo,
   Vertical,
 } from './tipos';
+import { sanitizarFormParaEnvio } from './form-limits';
 
 /** URL pública do backend em produção (Render). Fallback se VITE_API_URL não entrar no build. */
 const API_PROD_FALLBACK = 'https://beyond-agents-api.onrender.com';
@@ -41,10 +42,11 @@ export async function getFixture(vertical?: Vertical | 'healthtech' | 'edtech'):
 
 /** Submete o form simplificado e devolve a submissão + runId. */
 export async function submitForm(form: FormSimplificado): Promise<SubmissionRespostaApi> {
+  const payload = sanitizarFormParaEnvio(form);
   const r = await fetch(`${API_BASE}/api/submissions`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ form_simplificado: form }),
+    body: JSON.stringify({ form_simplificado: payload }),
   });
   if (!r.ok) {
     const erro = await parseJson<{ erro?: string; detalhes?: unknown }>(r, 'submitForm').catch(() => ({
@@ -52,6 +54,9 @@ export async function submitForm(form: FormSimplificado): Promise<SubmissionResp
       detalhes: undefined,
     }));
     const msg = erro.erro ?? `http ${r.status}`;
+    if (r.status === 429) {
+      throw new Error(msg || 'Muitas submissões em sequência — aguarde ~1 minuto e tente de novo.');
+    }
     throw new Error(erro.detalhes ? `${msg}: ${JSON.stringify(erro.detalhes)}` : msg);
   }
   return parseJson<SubmissionRespostaApi>(r, 'submitForm');

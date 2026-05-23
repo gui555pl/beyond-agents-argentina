@@ -11,6 +11,7 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getFixture, submitForm } from '../lib/api';
+import { sanitizarFormParaEnvio } from '../lib/form-limits';
 import { useStore } from '../lib/store';
 import type { FormSimplificado, FixtureRes, TempoTrabalho, Vertical } from '../lib/tipos';
 
@@ -58,7 +59,7 @@ function fixtureParaForm(fix: FixtureRes): FormSimplificado {
   else if (tempoTxt.includes('11 meses') || tempoTxt.includes('14 meses') || tempoTxt.includes('6 meses') || tempoTxt.includes('6m-1y')) tempo = '6m-1y';
   else if (tempoTxt.includes('mais de 1') || tempoTxt.includes('+1y')) tempo = 'mais-1y';
 
-  return {
+  return sanitizarFormParaEnvio({
     nome_solucao: s.solucao.nome,
     vertical: s.solucao.vertical,
     descricao_curta: s.solucao.descricao_50_chars,
@@ -72,7 +73,7 @@ function fixtureParaForm(fix: FixtureRes): FormSimplificado {
     tempo_trabalhando: tempo,
     founder_background: founder?.historico_trabalho ?? '',
     email: founder?.email ?? '',
-  };
+  });
 }
 
 export function Submit() {
@@ -128,7 +129,7 @@ export function Submit() {
     if (form.nome_solucao.trim().length < 2) return 'nome_solucao';
     if (form.descricao_curta.trim().length < 10) return 'descricao_curta';
     if (form.dor_e_evidencia.trim().length < 20) return 'dor_e_evidencia';
-    if (form.publico_alvo.trim().length < 5 || form.publico_alvo.trim().length > 600) return 'publico_alvo';
+    if (form.publico_alvo.trim().length < 5 || form.publico_alvo.trim().length > 300) return 'publico_alvo';
     if (form.diferencial_moat.trim().length < 10) return 'diferencial_moat';
     if (form.concorrentes.trim().length < 3) return 'concorrentes';
     if (form.tam_aproximado.trim().length < 1) return 'tam_aproximado';
@@ -137,6 +138,7 @@ export function Submit() {
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    if (enviando) return;
     setErro(null);
     const erroCampo = validar();
     if (erroCampo) {
@@ -147,16 +149,16 @@ export function Submit() {
     setEnviando(true);
     reset();
     try {
-      const payload: FormSimplificado = {
-        ...form,
-        email: form.email?.trim() || undefined,
-        founder_background: form.founder_background?.trim() || undefined,
-        barreira_legal_detalhes: form.barreira_legal_detalhes?.trim() || undefined,
-      };
-      const resp = await submitForm(payload);
+      const resp = await submitForm(form);
       navigate(`/runs/${resp.runId}`);
     } catch (err) {
-      setErro(err instanceof Error ? err.message : String(err));
+      const msg = err instanceof Error ? err.message : String(err);
+      if (msg.includes('publico_alvo') || msg.includes('Too big')) {
+        setCampoComErro('publico_alvo');
+        setErro('O campo "Público-alvo" está longo demais. Encurte o texto e tente de novo.');
+      } else {
+        setErro(msg);
+      }
     } finally {
       setEnviando(false);
     }
@@ -272,13 +274,13 @@ export function Submit() {
               />
             </Campo>
 
-            <Campo label="Pra quem é (público-alvo)" obrigatorio dica="Até 600 caracteres">
+            <Campo label="Pra quem é (público-alvo)" obrigatorio dica="Até 300 caracteres">
               <textarea
                 value={form.publico_alvo}
                 onChange={(e) => set('publico_alvo', e.target.value)}
                 placeholder="Ex: Coordenadores de residência médica em hospitais-escola com 100+ residentes"
                 rows={3}
-                maxLength={600}
+                maxLength={300}
                 className={`${inputBase} resize-none ${campoComErro === 'publico_alvo' ? errClass : ''}`}
               />
             </Campo>
