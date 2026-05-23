@@ -3,6 +3,7 @@
     "id": "lp-1",
     "arquivo_lp": "lp-1.html",
     "arquivo_ads": "ads-1.html",
+    "vertical": "healthtech",
     "angulo": "Clínica pequena genérica — foco em no-show e secretária digital",
     "publico": "Médicos donos de clínicas com 1-10 médicos, dor de no-show",
     "tags": ["clinica-pequena", "no-show", "whatsapp", "secretaria-digital"]
@@ -11,6 +12,7 @@
     "id": "lp-2",
     "arquivo_lp": "lp-2.html",
     "arquivo_ads": "ads-2.html",
+    "vertical": "healthtech",
     "angulo": "Enterprise / redes multi-unidades — TISS, dashboard, padronização",
     "publico": "Gestores administrativos de redes de 5-20 clínicas",
     "tags": ["rede-multi-unidades", "tiss", "enterprise", "padronizacao", "dashboard"]
@@ -19,6 +21,7 @@
     "id": "lp-3",
     "arquivo_lp": "lp-3.html",
     "arquivo_ads": "ads-3.html",
+    "vertical": "healthtech",
     "angulo": "Solo / preço baixo / direto ao CTA",
     "publico": "Médicos solo recém-saindo, sensíveis a preço",
     "tags": ["solo", "preco-baixo", "direto", "sem-secretaria"]
@@ -27,6 +30,7 @@
     "id": "lp-4",
     "arquivo_lp": "lp-4.html",
     "arquivo_ads": "ads-4.html",
+    "vertical": "healthtech",
     "angulo": "Saúde mental — psiquiatria/psicologia — transcrição de sessão e SOAP",
     "publico": "Psiquiatras e psicólogos com consultório próprio ou híbrido",
     "tags": ["saude-mental", "psiquiatria", "psicologia", "transcricao", "soap", "telemedicina"]
@@ -35,6 +39,7 @@
     "id": "lp-5",
     "arquivo_lp": "lp-5.html",
     "arquivo_ads": "ads-5.html",
+    "vertical": "healthtech",
     "angulo": "Franquias de clínicas — padronização de rede e onboarding rápido",
     "publico": "Franqueadores de redes de clínicas (10+ unidades)",
     "tags": ["franquia", "rede-franqueada", "padronizacao-rede", "sso", "onboarding"]
@@ -43,8 +48,63 @@
     "id": "lp-6",
     "arquivo_lp": "lp-6.html",
     "arquivo_ads": "ads-6.html",
+    "vertical": "healthtech",
     "angulo": "Profissional autônomo multi-profissão — agenda + cobrança + lembretes",
     "publico": "Dentistas, psicólogos, fisioterapeutas, nutricionistas autônomos",
     "tags": ["autonomo", "multi-profissao", "agenda", "cobranca-pix", "lembrete"]
+  },
+  {
+    "id": "erudio-1",
+    "arquivo_lp": "erudio-1.html",
+    "arquivo_ads": "erudio-ads-1.html",
+    "vertical": "edtech",
+    "angulo": "Planilha → plataforma — substituição da gestão manual em Excel",
+    "publico": "Coordenadores que ainda gerenciam educação em planilha",
+    "tags": ["planilha", "excel", "migracao", "gestao-educacional", "produtividade"]
+  },
+  {
+    "id": "erudio-2",
+    "arquivo_lp": "erudio-2.html",
+    "arquivo_ads": "erudio-ads-2.html",
+    "vertical": "edtech",
+    "angulo": "Auditoria de NRs — conformidade SST e treinamento corporativo",
+    "publico": "Áreas de SST corporativo de empresas 200-2000 funcionários",
+    "tags": ["nr", "sst", "auditoria", "conformidade", "treinamento-corporativo", "anamt"]
+  },
+  {
+    "id": "erudio-3",
+    "arquivo_lp": "erudio-3.html",
+    "arquivo_ads": "erudio-ads-3.html",
+    "vertical": "edtech",
+    "angulo": "Onboarding educacional — calouros universitários, ramp-up de alunos",
+    "publico": "Coordenadores de graduação e EAD com taxa alta de evasão inicial",
+    "tags": ["onboarding", "universidade", "evasao", "calouros", "ead", "graduacao"]
+  },
+  {
+    "id": "erudio-4",
+    "arquivo_lp": "erudio-4.html",
+    "arquivo_ads": "erudio-ads-4.html",
+    "vertical": "edtech",
+    "angulo": "NRs auditáveis — registros de treinamento de segurança do trabalho",
+    "publico": "Engenheiros de segurança, RH e SST corporativo focado em NR-10/NR-12/NR-35",
+    "tags": ["nrs", "nr-10", "nr-12", "nr-35", "registro-auditavel", "engenharia-seguranca"]
+  },
+  {
+    "id": "erudio-5",
+    "arquivo_lp": "erudio-5.html",
+    "arquivo_ads": "erudio-ads-5.html",
+    "vertical": "edtech",
+    "angulo": "Universidade média — gestão acadêmica integrada com IA",
+    "publico": "Reitores e diretores acadêmicos de universidades de 2.000-10.000 alunos",
+    "tags": ["universidade", "reitor", "gestao-academica", "ead", "mec", "ies"]
+  },
+  {
+    "id": "erudio-6",
+    "arquivo_lp": "erudio-6.html",
+    "arquivo_ads": "erudio-ads-6.html",
+    "vertical": "edtech",
+    "angulo": "Hospital-escola — rodízios de residência médica com IA",
+    "publico": "Coordenadores de residência médica de hospitais-escola com 100+ residentes",
+    "tags": ["hospital-escola", "residencia-medica", "rodizio", "hc-fmusp", "ima", "dispensa-licitacao"]
   }
 ]

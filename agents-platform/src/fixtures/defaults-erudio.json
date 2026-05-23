@@ -1,0 +1,64 @@
+{
+  "submissao_aurora": {
+    "founders": [
+      {
+        "nome": "Felipe Andrade",
+        "telefone": "+55 11 99812-3456",
+        "email": "felipe@erudio.education",
+        "genero": "Masculino",
+        "data_nascimento": "1986-04-18",
+        "cidade": "São Paulo",
+        "redes_sociais": "@felipe.andrade",
+        "educacao": "Engenharia de Computação USP + Master in Education Technology Columbia",
+        "historico_trabalho": "9 anos liderando produto em EdTechs B2B (Estácio Digital, Sponte). 4 anos como Chief Product Officer da plataforma de NRs Treinasoft (vendida em 2022). Atualmente full-time na Erudio há 14 meses.",
+        "linkedin": "linkedin.com/in/felipe-andrade-edu",
+        "conquistas": "Exit da Treinasoft em 2022 (R$ 14M). Escalou produto de gestão de residência médica do HC-FMUSP. Co-autor do livro Educação Corporativa em Tempos de IA."
+      },
+      {
+        "nome": "Camila Ribas",
+        "telefone": "+55 11 98765-4321",
+        "email": "camila@erudio.education",
+        "genero": "Feminino",
+        "data_nascimento": "1989-12-09",
+        "cidade": "São Paulo",
+        "redes_sociais": "@camila.ribas",
+        "educacao": "Medicina UFRJ + Residência em Educação Médica HC-FMUSP + Doutorado em Ensino na Saúde USP",
+        "historico_trabalho": "5 anos como coordenadora pedagógica de residência médica do Hospital das Clínicas. 3 anos como diretora acadêmica de uma rede universitária privada. Full-time Erudio há 14 meses.",
+        "linkedin": "linkedin.com/in/camila-ribas-edu",
+        "conquistas": "Estruturou o programa de rodízio de residência do HC-FMUSP que virou referência para 12 hospitais-escola. Autora de 9 papers em educação médica e EAD."
+      }
+    ],
+    "solucao": {
+      "nome": "Erudio",
+      "descricao_50_chars": "Plataforma de gestão educacional com IA",
+      "por_que_escolheu": "Camila viveu por 5 anos a dor de organizar rodízios de residência médica em planilhas e WhatsApp. Felipe construiu produto pra grandes redes EAD e SST, mas o mid-market educacional (hospitais-escola, universidades médias, áreas de SST corporativas) está descoberto: sistemas enterprise são caros demais, LMS genéricos não cobrem rodízio + auditoria + onboarding, e ninguém une auditoria de NRs com prontuário acadêmico. Combinamos o lado pedagógico (Camila) com o lado de produto e IA (Felipe).",
+      "vertical": "edtech",
+      "pitch_deck_url": "https://erudio.education/deck",
+      "video_demo_url": "https://erudio.education/demo"
+    },
+    "progresso": {
+      "tempo_de_trabalho": "14 meses full-time os dois fundadores",
+      "cash_balance_e_burn_rate": "R$ 680k em caixa, R$ 78k/mês burn (2 founders + 3 devs + 1 customer success + 1 pedagoga). Runway 8-9 meses.",
+      "projecao_faturamento": "Ano 1: R$ 1.4M ARR (28 contratos a R$ 4.200/mês média). Ano 2: R$ 6.8M ARR. Premissa: ticket médio R$ 4.200/mês (mix hospitais-escola R$ 6k, universidades R$ 4k, SST corporativo R$ 2.5k), churn 2.5% ao mês, CAC R$ 9.000 via inbound + dispensa de licitação IMA.",
+      "stack_tecnologico": "Next.js + Supabase + Claude Sonnet 4 para geração de planos de aula e auditoria de NRs + Whisper para transcrição de aulas e supervisões + WhatsApp Business API para lembretes de rodízio. Stack 100% vibe coding com IA — sem pesquisa fundamental.",
+      "reduz_custos_com_infra_beyond": true,
+      "mvp_em_4_semanas": "Sim — MVP em produção há 7 meses, 9 contratos pagantes ativos (3 hospitais-escola, 2 universidades, 4 áreas de SST corporativas). Em 4 semanas viramos produto self-serve para o segmento SST."
+    },
+    "problema_mercado": {
+      "por_que_essa_ideia": "Camila coordenou rodízios de 120 residentes médicos por 5 anos em planilhas Excel, lousas, WhatsApp e e-mail — perdendo 14h/semana só com remanejamento manual. Felipe vendeu produto pra grandes redes mas viu o mid-market educacional invisível: hospitais-escola pagam R$ 600 por residente em planilha-com-CRM, universidades de 2.000-10.000 alunos perdem 30% dos calouros no onboarding por falta de jornada estruturada, e empresas de 200-2.000 funcionários falham em auditoria de NRs porque o registro é manual. Erudio cobre os três casos com a mesma base de gestão educacional + IA.",
+      "dor_latente_e_evidencias": "Camila entrevistou 31 coordenadores de hospitais-escola, 18 diretores de universidades médias e 22 responsáveis por SST corporativo em 2025. 93% reportam mais de 10h/semana só em planilha de gestão. 81% sofreram não-conformidade em auditoria de NRs nos últimos 18 meses. 100% disseram que TOTVS / Sponte / Moodle não cobrem rodízio + auditoria juntos. 9 contratos pagantes no MVP atual reduziram tempo de gestão em média 62% em 90 dias e zeraram não-conformidade de NRs nos 4 clientes corporativos.",
+      "publico_problema_solucao": "Para hospitais-escola com 100+ residentes, universidades EAD/presenciais com 2.000-10.000 alunos e áreas de SST corporativas com 200-2.000 funcionários que gastam 10-14h/semana em planilha manual e sofrem auditoria de NRs sem registro estruturado, oferecemos uma plataforma única de gestão educacional com IA que monta rodízios automaticamente, gera planos de aula, transcreve supervisões para prontuário acadêmico e emite registros auditáveis de NRs com 1 clique.",
+      "diferencial_moat": "Engine de rodízio fine-tuned em 80k+ alocações reais de residência médica (parceria HC-FMUSP de Camila). Templates de NRs validados juridicamente em 5 estados. Contratação via dispensa de licitação por IMA (Instituto Municipal de Apoio) para o canal público. Concorrentes ou são LMS genéricos (Moodle, Canvas) sem rodízio nem auditoria, ou ERPs educacionais (TOTVS, Sponte) sem IA generativa e sem auditoria de NRs.",
+      "concorrentes_e_lacunas": "TOTVS Educacional e Sponte (ERPs educacionais caros, sem IA generativa, sem auditoria SST). Moodle e Canvas (LMS gratuitos/baratos, sem rodízio, sem auditoria, sem prontuário acadêmico). Treinaut e SafetyLab (foco só em NRs, sem cobertura educacional). Nenhum cobre rodízios médicos + onboarding universitário + auditoria SST na mesma plataforma.",
+      "tam_sam_som": "TAM: R$ 8-12 Bi (EdTech B2B Brasil incluindo hospitais-escola, universidades privadas e treinamento corporativo SST). SAM: R$ 1.6-2.4 Bi (180 hospitais-escola + 1.200 universidades médias + 40.000 empresas com 200-2.000 funcionários). SOM: R$ 240M em 3 anos.",
+      "escalabilidade_sem_custo_proporcional": "SaaS puro. Custo marginal por contrato próximo de zero. Inferência IA (geração de planos + auditoria NR + transcrição de supervisões): R$ 35-60/contrato/mês diluído no ticket de R$ 4.200. WhatsApp API repassado no plano.",
+      "canais_de_venda": "Rede institucional de Camila (HC-FMUSP, AMB, Conselhos de Medicina), dispensa de licitação via IMA para o canal público (hospitais-escola e universidades federais), parceria fechada com 3 sociedades de SST (Anamt, ABEPRO, SOBES), inbound via SEO de 'auditoria NR' e 'rodízio residência médica'.",
+      "barreira_legal_imediata": false
+    },
+    "expectativas": {
+      "convencimento": "Beyond tem case em EdTech B2B no portfolio (Aurora investiu na vertical antes) e infraestrutura de IA generativa que acelera nosso roadmap. Queremos validar a tese para abrir Série A em 18 meses com tração nos três segmentos (hospital-escola, universidade média, SST corporativo).",
+      "areas_de_ajuda": "Vendas para grandes redes universitárias (Tier 1), Desenvolvimento de integração com sistemas estaduais de educação, Jurídico para dispensa de licitação IMA em outros municípios, Contatos com fundações hospitalares (Fundação Faculdade de Medicina, IPSEMG, IAMSPE)."
+    }
+  },
+  "hipotese_raiz": "Plataforma única de gestão educacional com IA para hospitais-escola, universidades médias e áreas de SST corporativas, cobrindo rodízio + onboarding + auditoria de NRs, canal direto via dispensa de licitação IMA + sociedades pedagógicas + médicas."
+}

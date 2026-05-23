@@ -1,0 +1,182 @@
+[
+  {
+    "id": "e01",
+    "nome": "Dra. Camila Sodré",
+    "idade": 44,
+    "ocupacao": "Coordenadora de residência médica em hospital-escola federal (130 residentes)",
+    "dor_principal": "Faz rodízio em Excel e troca último-minuto pelo WhatsApp; perde 14h/semana só com remanejamento",
+    "intencao_de_compra_baseline": 8,
+    "vies": "Compra por dispensa de licitação (IMA); exige conformidade com Resolução CFM e DCNs"
+  },
+  {
+    "id": "e02",
+    "nome": "Prof. Marcelo Antunes",
+    "idade": 51,
+    "ocupacao": "Diretor acadêmico de universidade privada média (5.800 alunos) em Salvador",
+    "dor_principal": "Evasão de calouros de 32% no primeiro semestre; onboarding é manual e fragmentado em 4 sistemas",
+    "intencao_de_compra_baseline": 7,
+    "vies": "Decide com base em ROI educacional e aderência ao MEC; rejeita LMS genérico"
+  },
+  {
+    "id": "e03",
+    "nome": "Eng. Patrícia Souto",
+    "idade": 39,
+    "ocupacao": "Engenheira de segurança do trabalho em rede industrial com 1.400 funcionários no Sul",
+    "dor_principal": "Registro de NR-10, NR-12 e NR-35 é manual em pasta e PDF; falhou na última auditoria por isso",
+    "intencao_de_compra_baseline": 9,
+    "vies": "Compra com base em risco regulatório; quer auditável, assinatura digital e GPS"
+  },
+  {
+    "id": "e04",
+    "nome": "Pedro Vasconcellos",
+    "idade": 36,
+    "ocupacao": "Coordenador pedagógico de EAD universitária (12.000 alunos) em Brasília",
+    "dor_principal": "Plano de aula varia entre 60 professores; não tem como auditar qualidade nem aderência à DCN",
+    "intencao_de_compra_baseline": 8,
+    "vies": "Sensível a IA generativa para padronização de plano de aula; testa antes de aprovar"
+  },
+  {
+    "id": "e05",
+    "nome": "Dra. Renata Linhares",
+    "idade": 47,
+    "ocupacao": "Diretora médica acadêmica de hospital universitário em Recife (90 residentes)",
+    "dor_principal": "Prontuário acadêmico do residente vive separado do prontuário clínico; coordenação faz dupla entrada",
+    "intencao_de_compra_baseline": 8,
+    "vies": "Pragmática; quer redução de horas-pessoa e adesão dos médicos preceptores"
+  },
+  {
+    "id": "e06",
+    "nome": "Tiago Bittencourt",
+    "idade": 34,
+    "ocupacao": "RH responsável por SST em rede de varejo com 2.100 funcionários em SP",
+    "dor_principal": "Treinamento de NR-35 (trabalho em altura) é refeito a cada 2 anos sem rastro auditável dos antigos",
+    "intencao_de_compra_baseline": 7,
+    "vies": "Compra junto com TI; precisa integração com o ERP existente (TOTVS)"
+  },
+  {
+    "id": "e07",
+    "nome": "Profa. Aline Kirsch",
+    "idade": 56,
+    "ocupacao": "Reitora de centro universitário em Joinville (3.200 alunos)",
+    "dor_principal": "Recredenciamento MEC em 18 meses; documentação acadêmica está em 7 planilhas e 2 sistemas",
+    "intencao_de_compra_baseline": 9,
+    "vies": "Decide rápido se vir endosso de outra IES que já passou pelo MEC com a plataforma"
+  },
+  {
+    "id": "e08",
+    "nome": "Dr. Luiz Henrique Marchetti",
+    "idade": 41,
+    "ocupacao": "Preceptor de residência em ortopedia em hospital privado (28 residentes)",
+    "dor_principal": "Avaliação de competência do residente é em formulário Google que ninguém preenche; perde dado",
+    "intencao_de_compra_baseline": 6,
+    "vies": "Cético com IA — quer evidência de que o residente médio realmente usa"
+  },
+  {
+    "id": "e09",
+    "nome": "Vanessa Lobato",
+    "idade": 32,
+    "ocupacao": "Coordenadora de SST corporativo em frigorífico no MS (980 funcionários)",
+    "dor_principal": "Auditoria do MTE chega sem aviso; sem registro auditável, multa direta de 6 dígitos",
+    "intencao_de_compra_baseline": 10,
+    "vies": "Maior aversão a risco do pool — paga prêmio por conformidade comprovada"
+  },
+  {
+    "id": "e10",
+    "nome": "Prof. Ricardo Quintella",
+    "idade": 49,
+    "ocupacao": "Diretor de pós-graduação executiva (MBA) em escola de negócios em São Paulo",
+    "dor_principal": "Onboarding de turma nova consome 80h da equipe; alunos abandonam em até 4 semanas se a jornada não engaja",
+    "intencao_de_compra_baseline": 7,
+    "vies": "Compra com base em UX premium; rejeita interface de ERP educacional dos anos 2000"
+  },
+  {
+    "id": "e11",
+    "nome": "Eng. Bruno Castelo",
+    "idade": 43,
+    "ocupacao": "Coordenador de SST em construtora com 3 obras simultâneas (650 funcionários)",
+    "dor_principal": "NR-18 (construção) e NR-35 (altura) precisam de prova de presença + foto + GPS — hoje é planilha + WhatsApp",
+    "intencao_de_compra_baseline": 9,
+    "vies": "Quer app mobile-first; obra rural não tem 4G estável; precisa funcionar offline"
+  },
+  {
+    "id": "e12",
+    "nome": "Daniela Petrocchi",
+    "idade": 38,
+    "ocupacao": "Coordenadora de residência em medicina de família (45 residentes) em hospital municipal",
+    "dor_principal": "Rodízio entre 12 unidades de saúde da família precisa ser semanal; planilha fica errada toda semana",
+    "intencao_de_compra_baseline": 8,
+    "vies": "Compra com aval da secretaria municipal de saúde; precisa ser barato pra fechar o orçamento"
+  },
+  {
+    "id": "e13",
+    "nome": "Prof. Walter Soeiro",
+    "idade": 60,
+    "ocupacao": "Diretor de cursinho preparatório de medicina (Belo Horizonte, 1.200 alunos)",
+    "dor_principal": "Frequência e desempenho de simulados ficam em sistemas diferentes; não dá pra correlacionar com aprovação",
+    "intencao_de_compra_baseline": 6,
+    "vies": "Conservador; só compra se o ROI vier por aumento de aprovação no primeiro semestre"
+  },
+  {
+    "id": "e14",
+    "nome": "Joana Risério",
+    "idade": 33,
+    "ocupacao": "Gerente de educação corporativa em multinacional de TI (800 funcionários no Brasil)",
+    "dor_principal": "LMS atual (genérico) não cobre NRs nem treinamento técnico interno; precisa de 2 plataformas",
+    "intencao_de_compra_baseline": 7,
+    "vies": "Decide com TI global; precisa SSO, SCIM, integração com Workday"
+  },
+  {
+    "id": "e15",
+    "nome": "Dr. Felipe Marcondes",
+    "idade": 46,
+    "ocupacao": "Coordenador de residência em ginecologia em hospital privado (24 residentes)",
+    "dor_principal": "Conselho de Medicina exige diário de atos médicos; residentes não preenchem porque é cansativo",
+    "intencao_de_compra_baseline": 8,
+    "vies": "Compra rápido se vir transcrição automática da supervisão por IA — quer reduzir burocracia, não criar"
+  },
+  {
+    "id": "e16",
+    "nome": "Profa. Mariana Sampaio",
+    "idade": 41,
+    "ocupacao": "Coordenadora EAD em universidade pública (8.500 alunos)",
+    "dor_principal": "Moodle dá conta da entrega; não dá conta de gestão acadêmica, frequência multi-polo, ou auditoria CAPES",
+    "intencao_de_compra_baseline": 7,
+    "vies": "Restrição orçamentária; precisa de comprovação de redução de custo operacional"
+  },
+  {
+    "id": "e17",
+    "nome": "Eduardo Marçal",
+    "idade": 50,
+    "ocupacao": "Diretor de RH em rede hoteleira (4 unidades, 720 funcionários)",
+    "dor_principal": "Onboarding de novo colaborador demora 12 dias; high turnover na operação significa onboarding constante",
+    "intencao_de_compra_baseline": 8,
+    "vies": "Quer trilhas customizadas por cargo + comprovação digital de conclusão pra auditoria interna"
+  },
+  {
+    "id": "e18",
+    "nome": "Dra. Renata Pinheiro",
+    "idade": 39,
+    "ocupacao": "Coordenadora pedagógica de pós em medicina (residência + especialização, 70 alunos)",
+    "dor_principal": "Avaliação de portfólio de aprendizagem dos residentes vira pasta de PDFs; difícil de comparar entre anos",
+    "intencao_de_compra_baseline": 7,
+    "vies": "Quer dashboard de comparação histórica entre turmas; aceita migração paga"
+  },
+  {
+    "id": "e19",
+    "nome": "Anderson Krieger",
+    "idade": 37,
+    "ocupacao": "Engenheiro de segurança em mineradora (3 minas, 1.200 funcionários)",
+    "dor_principal": "Treinamento NR-22 (mineração) e NR-31 (rural) tem que ser refeito após cada acidente; documentação fragmenta",
+    "intencao_de_compra_baseline": 9,
+    "vies": "Risco regulatório alto; compra rápido se vir conformidade de NRs setoriais (não só genéricas)"
+  },
+  {
+    "id": "e20",
+    "nome": "Profa. Yara Tabacow",
+    "idade": 54,
+    "ocupacao": "Pró-reitora de graduação em IES particular (12.000 alunos, 6 campi)",
+    "dor_principal": "Sistema de matrícula + LMS + sistema acadêmico do MEC + Moodle: 4 silos; coordenação reclama todos os dias",
+    "intencao_de_compra_baseline": 8,
+    "vies": "Compra por endosso de peer (outra pró-reitora); precisa migração assistida + treinamento da equipe"
+  }
+]

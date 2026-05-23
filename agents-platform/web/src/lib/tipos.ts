@@ -225,3 +225,51 @@ export interface FixtureRes {
   submissao_aurora: SubmissaoAurora;
   hipotese_raiz: string;
 }
+
+export type Vertical = 'legaltech' | 'edtech' | 'healthtech' | 'govtech' | 'outra';
+export type TempoTrabalho = 'menos-1m' | '1-3m' | '3-6m' | '6m-1y' | 'mais-1y';
+
+/** Form simplificado da tela /submit — espelha FormSimplificadoSchema do backend. */
+export interface FormSimplificado {
+  nome_solucao: string;
+  vertical: Vertical;
+  descricao_curta: string;
+  dor_e_evidencia: string;
+  publico_alvo: string;
+  diferencial_moat: string;
+  concorrentes: string;
+  tam_aproximado: string;
+  barreira_legal_imediata: boolean;
+  barreira_legal_detalhes?: string;
+  tempo_trabalhando: TempoTrabalho;
+  founder_background?: string;
+  email?: string;
+}
+
+export type RunStatus = 'queued' | 'running' | 'done' | 'failed' | 'canceled' | 'starting';
+
+export interface SubmissionRespostaApi {
+  submissionId: string;
+  runId: string;
+  runUrl: string;
+  status: RunStatus;
+  position?: number;
+}
+
+export interface SubmissionInfo {
+  submissionId: string;
+  runId: string;
+  status: RunStatus;
+  queuePosition: number;
+  nomeSolucao: string | null;
+  vertical: string | null;
+  email: string | null;
+  formSimplificado: Partial<FormSimplificado> | Record<string, unknown>;
+  hipoteseRaiz: string;
+  criadoEm: number;
+  iniciadoEm: number | null;
+  finalizadoEm: number | null;
+  erro: string | null;
+}
+
+export type ConnectionStatus = 'idle' | 'connecting' | 'live' | 'reconnecting' | 'lost' | 'closed';

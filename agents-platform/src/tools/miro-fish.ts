@@ -99,6 +99,8 @@ async function avaliarPersona(
   persona: Persona,
   lpHtml: string,
   contextoExtra: string | undefined,
+  runId?: string,
+  signal?: AbortSignal,
 ): Promise<RespostaPersona> {
   let attempt = 0;
   while (attempt <= MAX_RETRIES_429) {
@@ -110,6 +112,8 @@ async function avaliarPersona(
         user: buildUser(persona, lpHtml, contextoExtra),
         max_tokens: 220,
         temperature: 0.85,
+        run_id: runId,
+        signal,
       });
       const parsed = extractJson<{
         achei_interessante: boolean;
@@ -171,6 +175,8 @@ export interface RunSwarmParams {
   lp_html: string;
   personas: Persona[];
   contexto_extra?: string;
+  run_id?: string;
+  signal?: AbortSignal;
   onProgress?: (resposta: RespostaPersona, indice: number, total: number) => void;
 }
 
@@ -179,6 +185,8 @@ export async function runSwarm({
   lp_html,
   personas,
   contexto_extra,
+  run_id,
+  signal,
   onProgress,
 }: RunSwarmParams): Promise<SwarmResultado> {
   const limit = pLimit(CONCURRENCY);
@@ -187,7 +195,7 @@ export async function runSwarm({
   const respostas = await Promise.all(
     personas.map((p) =>
       limit(async () => {
-        const r = await avaliarPersona(p, lp_html, contexto_extra);
+        const r = await avaliarPersona(p, lp_html, contexto_extra, run_id, signal);
         done++;
         if (onProgress) onProgress(r, done, total);
         return r;

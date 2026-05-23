@@ -1,0 +1,40 @@
+# Render Blueprint — Beyond Agents backend
+#
+# Como usar:
+#   1) Push do repo pro GitHub
+#   2) Dashboard Render → New → Blueprint → conectar este repo
+#   3) Apontar Blueprint path para: agents-platform/render.yaml
+#   4) Setar as env vars marcadas como `sync: false` no dashboard:
+#        - ANTHROPIC_API_KEY
+#        - ALLOWED_ORIGINS (a URL final do Vercel, ex: https://x.vercel.app)
+#   5) Deploy
+#
+# Limitações do free tier:
+#   - Sem disco persistente → SQLite vai em /tmp/runs.sqlite (efêmero).
+#     Cada cold-start (15min ocioso) ou redeploy zera o histórico de runs.
+#     Para demo ao vivo: OK. Para links permanentes: upgrade ao Starter ($7/mo + disk $1/mo).
+#   - 512MB RAM / 0.1 CPU.
+
+services:
+  - type: web
+    name: beyond-agents-api
+    runtime: docker
+    plan: free
+    rootDir: agents-platform
+    dockerfilePath: ./Dockerfile
+    region: oregon
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: PORT
+        value: "4001"
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_PATH
+        value: /tmp/runs.sqlite
+      - key: MAX_CONCURRENT_RUNS
+        value: "3"
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: ALLOWED_ORIGINS
+        sync: false

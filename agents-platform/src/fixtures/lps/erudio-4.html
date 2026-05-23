@@ -1,0 +1,1121 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Erudio Corporativo — Painel de treinamentos obrigatórios e NRs</title>
+<meta name="description" content="Saiba exatamente quem fez NR-10, NR-35, LGPD e código de ética. Reciclagem automática, alertas de vencimento e relatório pronto para fiscalização do MPT." />
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=IBM+Plex+Serif:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --warm-white: #F1EEEE;
+    --warm-white-deep: #EAE6E6;
+    --ink: #212121;
+    --ink-soft: #5C5C5C;
+    --ink-muted: #8A8A8A;
+    --erudio-red: #F44336;
+    --erudio-red-deep: #C8362C;
+    --hairline: rgba(33, 33, 33, 0.14);
+    --hairline-strong: rgba(33, 33, 33, 0.28);
+
+    --font-display: 'Geist', system-ui, sans-serif;
+    --font-body: 'IBM Plex Serif', Georgia, serif;
+    --font-mono: 'Geist Mono', ui-monospace, monospace;
+
+    --container: 1240px;
+    --gutter: clamp(20px, 4vw, 56px);
+
+    --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+  html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--warm-white);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 17px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+  ::selection { background: var(--ink); color: var(--warm-white); }
+
+  /* ---------- Type ---------- */
+  h1, h2, h3, h4, .display {
+    font-family: var(--font-display);
+    color: var(--ink);
+    letter-spacing: -0.02em;
+    line-height: 1.05;
+    font-weight: 500;
+    margin: 0;
+  }
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .eyebrow::before {
+    content: "";
+    width: 18px;
+    height: 1px;
+    background: var(--erudio-red);
+  }
+  .section-tag {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+  .section-tag .num {
+    color: var(--erudio-red);
+    font-weight: 500;
+    margin-right: 8px;
+  }
+  p { margin: 0 0 1em; }
+  a { color: var(--ink); text-decoration: none; }
+  a:hover { color: var(--erudio-red); }
+
+  /* ---------- Container ---------- */
+  .container {
+    max-width: var(--container);
+    margin: 0 auto;
+    padding: 0 var(--gutter);
+  }
+
+  /* ---------- Nav ---------- */
+  nav.top {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgba(241, 238, 238, 0.86);
+    backdrop-filter: saturate(140%) blur(8px);
+    -webkit-backdrop-filter: saturate(140%) blur(8px);
+    border-bottom: 1px solid var(--hairline);
+  }
+  nav.top .row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+  }
+  .brand {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 17px;
+    letter-spacing: -0.01em;
+    display: inline-flex;
+    align-items: baseline;
+    gap: 8px;
+  }
+  .brand .dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    background: var(--erudio-red);
+    border-radius: 0;
+    transform: translateY(1px);
+  }
+  .brand .product {
+    color: var(--ink-soft);
+    font-weight: 400;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    margin-left: 6px;
+  }
+  .nav-links {
+    display: flex;
+    gap: 28px;
+    align-items: center;
+    font-family: var(--font-display);
+    font-size: 14px;
+    font-weight: 400;
+  }
+  .nav-links a { color: var(--ink-soft); }
+  .nav-links a:hover { color: var(--ink); }
+  .nav-links .cta-mini {
+    font-family: var(--font-display);
+    background: var(--ink);
+    color: var(--warm-white);
+    padding: 10px 18px;
+    font-size: 13px;
+    letter-spacing: 0.02em;
+    transition: background 200ms var(--ease);
+  }
+  .nav-links .cta-mini:hover { background: var(--erudio-red); color: var(--warm-white); }
+  @media (max-width: 760px) {
+    .nav-links a:not(.cta-mini) { display: none; }
+  }
+
+  /* ---------- Hero ---------- */
+  .hero {
+    padding: clamp(64px, 12vw, 140px) 0 clamp(80px, 10vw, 120px);
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--hairline) 1px, transparent 1px),
+      linear-gradient(90deg, var(--hairline) 1px, transparent 1px);
+    background-size: 80px 80px;
+    background-position: -1px -1px;
+    opacity: 0.35;
+    mask-image: radial-gradient(ellipse at 30% 40%, black 30%, transparent 75%);
+    -webkit-mask-image: radial-gradient(ellipse at 30% 40%, black 30%, transparent 75%);
+    pointer-events: none;
+  }
+  .hero .container { position: relative; }
+  .hero-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 8fr) minmax(0, 4fr);
+    gap: clamp(40px, 6vw, 80px);
+    align-items: end;
+  }
+  @media (max-width: 920px) {
+    .hero-grid { grid-template-columns: 1fr; }
+  }
+  .hero h1 {
+    font-size: clamp(40px, 6.2vw, 84px);
+    font-weight: 500;
+    letter-spacing: -0.035em;
+    line-height: 1.02;
+    margin-top: 32px;
+    max-width: 16ch;
+  }
+  .hero h1 .accent { color: var(--erudio-red); font-style: normal; }
+  .hero h1 em {
+    font-family: var(--font-body);
+    font-style: italic;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+  }
+  .hero .sub {
+    margin-top: 28px;
+    max-width: 52ch;
+    color: var(--ink-soft);
+    font-size: clamp(17px, 1.5vw, 20px);
+    line-height: 1.5;
+  }
+  .hero-ctas {
+    margin-top: 40px;
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    font-family: var(--font-display);
+    font-size: 15px;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    padding: 16px 26px;
+    border: 1px solid var(--ink);
+    background: var(--ink);
+    color: var(--warm-white);
+    transition: background 200ms var(--ease), color 200ms var(--ease), border-color 200ms var(--ease);
+    cursor: pointer;
+  }
+  .btn:hover { background: var(--erudio-red); border-color: var(--erudio-red); color: var(--warm-white); }
+  .btn .arrow {
+    width: 18px;
+    height: 1px;
+    background: currentColor;
+    position: relative;
+    transition: width 200ms var(--ease);
+  }
+  .btn .arrow::after {
+    content: "";
+    position: absolute;
+    right: 0;
+    top: -3px;
+    width: 7px;
+    height: 7px;
+    border-right: 1px solid currentColor;
+    border-top: 1px solid currentColor;
+    transform: rotate(45deg);
+  }
+  .btn:hover .arrow { width: 28px; }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--ink);
+    border-color: var(--hairline-strong);
+  }
+  .btn-ghost:hover {
+    background: transparent;
+    color: var(--erudio-red);
+    border-color: var(--erudio-red);
+  }
+
+  /* Hero evidence column */
+  .hero-evidence {
+    border-left: 1px solid var(--hairline-strong);
+    padding-left: 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+  }
+  @media (max-width: 920px) {
+    .hero-evidence { border-left: none; padding-left: 0; border-top: 1px solid var(--hairline-strong); padding-top: 32px; }
+  }
+  .evidence-item .num {
+    font-family: var(--font-display);
+    font-size: clamp(36px, 4vw, 52px);
+    font-weight: 500;
+    letter-spacing: -0.03em;
+    color: var(--ink);
+    line-height: 1;
+  }
+  .evidence-item .num .red { color: var(--erudio-red); }
+  .evidence-item .desc {
+    margin-top: 8px;
+    font-size: 14px;
+    color: var(--ink-soft);
+    max-width: 28ch;
+    font-family: var(--font-body);
+  }
+  .evidence-item .src {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    margin-top: 8px;
+    display: block;
+  }
+
+  /* ---------- Generic section ---------- */
+  section {
+    padding: clamp(72px, 9vw, 128px) 0;
+    border-top: 1px solid var(--hairline);
+    position: relative;
+  }
+  .section-head {
+    display: grid;
+    grid-template-columns: minmax(0, 3fr) minmax(0, 9fr);
+    gap: clamp(24px, 4vw, 64px);
+    margin-bottom: clamp(40px, 6vw, 72px);
+    align-items: start;
+  }
+  @media (max-width: 760px) {
+    .section-head { grid-template-columns: 1fr; }
+  }
+  .section-head h2 {
+    font-size: clamp(28px, 3.4vw, 46px);
+    font-weight: 500;
+    letter-spacing: -0.025em;
+    line-height: 1.08;
+    max-width: 22ch;
+  }
+  .section-head h2 .italic {
+    font-family: var(--font-body);
+    font-style: italic;
+    font-weight: 400;
+    letter-spacing: -0.015em;
+  }
+
+  /* ---------- Problema ---------- */
+  .pain-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-top: 1px solid var(--hairline-strong);
+  }
+  .pain-list li {
+    display: grid;
+    grid-template-columns: 60px 1fr;
+    gap: 24px;
+    padding: 28px 0;
+    border-bottom: 1px solid var(--hairline);
+    align-items: baseline;
+  }
+  .pain-list .pn {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    color: var(--erudio-red);
+  }
+  .pain-list .pt {
+    font-family: var(--font-body);
+    font-size: clamp(18px, 1.7vw, 22px);
+    line-height: 1.4;
+    color: var(--ink);
+    max-width: 56ch;
+  }
+  .pain-closer {
+    margin-top: 40px;
+    font-family: var(--font-display);
+    font-style: normal;
+    font-weight: 500;
+    font-size: clamp(22px, 2.6vw, 32px);
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+    max-width: 30ch;
+  }
+  .pain-closer em {
+    font-family: var(--font-body);
+    font-style: italic;
+    font-weight: 400;
+    color: var(--erudio-red);
+  }
+
+  /* ---------- Solução (statement) ---------- */
+  .solucao-statement {
+    font-family: var(--font-body);
+    font-size: clamp(22px, 2.4vw, 30px);
+    line-height: 1.45;
+    max-width: 52ch;
+    color: var(--ink);
+  }
+  .solucao-statement strong {
+    font-family: var(--font-display);
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+
+  /* ---------- Benefícios ---------- */
+  .benefits {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 0;
+    border-top: 1px solid var(--hairline-strong);
+  }
+  .benefit {
+    grid-column: span 6;
+    padding: 36px 32px 36px 0;
+    border-bottom: 1px solid var(--hairline);
+    border-right: 1px solid var(--hairline);
+    padding-left: 32px;
+    position: relative;
+  }
+  .benefit:nth-child(2n) { border-right: none; padding-right: 0; padding-left: 48px; }
+  .benefit:nth-last-child(-n+1):nth-child(odd) { border-bottom: none; }
+  .benefit:nth-last-child(-n+2):not(:nth-child(odd)) { border-bottom: none; }
+  @media (max-width: 760px) {
+    .benefit, .benefit:nth-child(2n) {
+      grid-column: span 12;
+      border-right: none;
+      padding-left: 0;
+      padding-right: 0;
+    }
+  }
+  .benefit .bnum {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    color: var(--erudio-red);
+    margin-bottom: 18px;
+    display: block;
+  }
+  .benefit h3 {
+    font-size: clamp(20px, 1.9vw, 26px);
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+    margin-bottom: 12px;
+  }
+  .benefit h3 em {
+    font-family: var(--font-body);
+    font-style: italic;
+    font-weight: 400;
+  }
+  .benefit p {
+    color: var(--ink-soft);
+    margin: 0;
+    max-width: 44ch;
+    font-size: 16px;
+    line-height: 1.55;
+  }
+
+  /* ---------- Como funciona ---------- */
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0;
+    border-top: 1px solid var(--hairline-strong);
+    border-bottom: 1px solid var(--hairline-strong);
+  }
+  @media (max-width: 760px) {
+    .steps { grid-template-columns: 1fr; }
+  }
+  .step {
+    padding: 40px 32px 40px 32px;
+    border-right: 1px solid var(--hairline);
+    position: relative;
+  }
+  .step:last-child { border-right: none; }
+  @media (max-width: 760px) {
+    .step { border-right: none; border-bottom: 1px solid var(--hairline); padding-left: 0; padding-right: 0; }
+    .step:last-child { border-bottom: none; }
+  }
+  .step .snum {
+    font-family: var(--font-display);
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--erudio-red);
+    font-feature-settings: "tnum" 1;
+    letter-spacing: 0.04em;
+    margin-bottom: 24px;
+    display: block;
+  }
+  .step h3 {
+    font-size: clamp(20px, 1.9vw, 24px);
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    margin-bottom: 12px;
+    max-width: 18ch;
+  }
+  .step p {
+    color: var(--ink-soft);
+    margin: 0;
+    font-size: 16px;
+    line-height: 1.55;
+    max-width: 36ch;
+  }
+
+  /* ---------- Prova social ---------- */
+  .proofs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    border-top: 1px solid var(--hairline-strong);
+  }
+  @media (max-width: 760px) {
+    .proofs { grid-template-columns: 1fr; }
+  }
+  .proof {
+    padding: 48px 40px 48px 0;
+    border-right: 1px solid var(--hairline);
+  }
+  .proof:last-child { border-right: none; padding-right: 0; padding-left: 40px; }
+  @media (max-width: 760px) {
+    .proof, .proof:last-child {
+      border-right: none;
+      border-bottom: 1px solid var(--hairline);
+      padding: 32px 0;
+    }
+    .proof:last-child { border-bottom: none; }
+  }
+  .proof .org {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-bottom: 28px;
+    display: block;
+  }
+  .proof .stat {
+    font-family: var(--font-display);
+    font-size: clamp(40px, 5vw, 72px);
+    font-weight: 500;
+    letter-spacing: -0.035em;
+    line-height: 1;
+  }
+  .proof .stat .red { color: var(--erudio-red); }
+  .proof .stat-label {
+    margin-top: 14px;
+    font-size: 17px;
+    color: var(--ink);
+    line-height: 1.4;
+    max-width: 32ch;
+  }
+  .proof .secondary-stat {
+    margin-top: 28px;
+    padding-top: 24px;
+    border-top: 1px solid var(--hairline);
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    line-height: 1.3;
+  }
+  .proof .secondary-stat .red { color: var(--erudio-red); }
+  .proof .secondary-stat .lbl {
+    font-family: var(--font-body);
+    font-weight: 400;
+    color: var(--ink-soft);
+    font-size: 15px;
+    display: block;
+    margin-top: 4px;
+  }
+
+  /* Heron quote inline */
+  .testimonial {
+    margin-top: 64px;
+    padding: 40px 0 0;
+    border-top: 1px solid var(--hairline-strong);
+    display: grid;
+    grid-template-columns: minmax(0, 3fr) minmax(0, 9fr);
+    gap: clamp(24px, 4vw, 56px);
+    align-items: start;
+  }
+  @media (max-width: 760px) {
+    .testimonial { grid-template-columns: 1fr; }
+  }
+  .testimonial .label {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+  .testimonial blockquote {
+    margin: 0;
+    font-family: var(--font-body);
+    font-style: italic;
+    font-weight: 400;
+    font-size: clamp(24px, 2.6vw, 34px);
+    line-height: 1.3;
+    letter-spacing: -0.015em;
+    color: var(--ink);
+    max-width: 28ch;
+  }
+  .testimonial blockquote::before {
+    content: "“";
+    color: var(--erudio-red);
+    font-family: var(--font-body);
+    font-size: 1.2em;
+    line-height: 0;
+    vertical-align: -0.18em;
+    margin-right: 0.05em;
+  }
+  .testimonial blockquote::after {
+    content: "”";
+    color: var(--erudio-red);
+    line-height: 0;
+    vertical-align: -0.18em;
+    margin-left: 0.05em;
+  }
+  .testimonial cite {
+    display: block;
+    margin-top: 18px;
+    font-style: normal;
+    font-family: var(--font-display);
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ink);
+    letter-spacing: 0.01em;
+  }
+  .testimonial cite .role {
+    display: block;
+    font-weight: 400;
+    color: var(--ink-soft);
+    font-family: var(--font-body);
+    font-style: italic;
+    margin-top: 2px;
+  }
+
+  /* ---------- Como contratar ---------- */
+  .contrata {
+    background: var(--ink);
+    color: var(--warm-white);
+    border-radius: 0;
+    margin-top: 0;
+    border-top: 1px solid var(--ink);
+  }
+  .contrata .container { padding-top: clamp(72px, 9vw, 120px); padding-bottom: clamp(72px, 9vw, 120px); }
+  .contrata .section-tag .num { color: var(--erudio-red); }
+  .contrata .section-tag { color: rgba(241, 238, 238, 0.6); }
+  .contrata h2 { color: var(--warm-white); }
+  .contrata .lead {
+    font-size: clamp(20px, 2vw, 24px);
+    color: rgba(241, 238, 238, 0.78);
+    max-width: 60ch;
+    line-height: 1.5;
+    margin-top: 32px;
+    margin-bottom: 48px;
+  }
+  .contrata .lead strong {
+    color: var(--erudio-red);
+    font-weight: 500;
+    font-style: normal;
+    font-family: var(--font-display);
+    letter-spacing: -0.005em;
+  }
+  .contrata-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-top: 1px solid rgba(241, 238, 238, 0.18);
+    max-width: 920px;
+  }
+  .contrata-list li {
+    display: grid;
+    grid-template-columns: 60px 1fr;
+    gap: 24px;
+    padding: 28px 0;
+    border-bottom: 1px solid rgba(241, 238, 238, 0.14);
+    align-items: baseline;
+    font-family: var(--font-body);
+    font-size: clamp(17px, 1.5vw, 20px);
+    line-height: 1.5;
+    color: rgba(241, 238, 238, 0.92);
+  }
+  .contrata-list .lnum {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    color: var(--erudio-red);
+    text-transform: uppercase;
+  }
+  .contrata .btn {
+    background: var(--erudio-red);
+    border-color: var(--erudio-red);
+    color: var(--warm-white);
+    margin-top: 48px;
+  }
+  .contrata .btn:hover { background: var(--warm-white); color: var(--ink); border-color: var(--warm-white); }
+  .contrata .btn-ghost {
+    background: transparent;
+    border-color: rgba(241, 238, 238, 0.4);
+    color: var(--warm-white);
+    margin-left: 12px;
+  }
+  .contrata .btn-ghost:hover {
+    border-color: var(--warm-white);
+    color: var(--warm-white);
+    background: transparent;
+  }
+  .contrata .cta-row { display: flex; gap: 12px; flex-wrap: wrap; }
+
+  /* ---------- CTA final ---------- */
+  .cta-final {
+    text-align: left;
+    border-top: 1px solid var(--hairline);
+  }
+  .cta-final h2 {
+    font-size: clamp(36px, 5.4vw, 76px);
+    letter-spacing: -0.035em;
+    line-height: 1.04;
+    max-width: 22ch;
+  }
+  .cta-final h2 em {
+    font-family: var(--font-body);
+    font-style: italic;
+    font-weight: 400;
+    color: var(--erudio-red);
+  }
+  .cta-final .sub {
+    margin-top: 28px;
+    font-size: clamp(17px, 1.5vw, 20px);
+    color: var(--ink-soft);
+    max-width: 60ch;
+    line-height: 1.55;
+  }
+  .cta-final .row { margin-top: 48px; display: flex; gap: 12px; flex-wrap: wrap; }
+
+  /* ---------- FAQ ---------- */
+  .faq-list {
+    border-top: 1px solid var(--hairline-strong);
+  }
+  .faq-list details {
+    border-bottom: 1px solid var(--hairline);
+    padding: 0;
+  }
+  .faq-list summary {
+    cursor: pointer;
+    list-style: none;
+    padding: 28px 48px 28px 0;
+    font-family: var(--font-display);
+    font-size: clamp(18px, 1.7vw, 22px);
+    font-weight: 500;
+    letter-spacing: -0.015em;
+    color: var(--ink);
+    position: relative;
+    transition: color 200ms var(--ease);
+  }
+  .faq-list summary::-webkit-details-marker { display: none; }
+  .faq-list summary::after {
+    content: "+";
+    position: absolute;
+    right: 4px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-family: var(--font-mono);
+    font-size: 22px;
+    color: var(--erudio-red);
+    font-weight: 400;
+    transition: transform 200ms var(--ease);
+    line-height: 1;
+  }
+  .faq-list details[open] summary::after { content: "−"; }
+  .faq-list summary:hover { color: var(--erudio-red); }
+  .faq-list .faq-body {
+    padding: 0 48px 32px 0;
+    font-family: var(--font-body);
+    font-size: 17px;
+    line-height: 1.6;
+    color: var(--ink-soft);
+    max-width: 70ch;
+  }
+  .faq-list .faq-body em.note {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    font-style: normal;
+    display: inline-block;
+    margin-top: 8px;
+    border: 1px solid var(--hairline-strong);
+    padding: 6px 10px;
+  }
+
+  /* ---------- Footer ---------- */
+  footer {
+    border-top: 1px solid var(--hairline);
+    padding: 56px 0 40px;
+    background: var(--warm-white-deep);
+  }
+  footer .row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 32px;
+    flex-wrap: wrap;
+  }
+  footer .legal {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+  }
+  footer .brand-foot {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 15px;
+    letter-spacing: -0.005em;
+  }
+
+  /* ---------- Reveal animation on load ---------- */
+  .reveal { opacity: 0; transform: translateY(14px); animation: rise 900ms var(--ease) forwards; }
+  .r-1 { animation-delay: 80ms; }
+  .r-2 { animation-delay: 200ms; }
+  .r-3 { animation-delay: 320ms; }
+  .r-4 { animation-delay: 460ms; }
+  .r-5 { animation-delay: 600ms; }
+  @keyframes rise {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .reveal { animation: none; opacity: 1; transform: none; }
+    html { scroll-behavior: auto; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="top">
+  <div class="container row">
+    <a href="#" class="brand">
+      <span class="dot"></span>
+      Erudio<span class="product">Corporativo</span>
+    </a>
+    <div class="nav-links">
+      <a href="#problema">Problema</a>
+      <a href="#beneficios">Plataforma</a>
+      <a href="#como-funciona">Implantação</a>
+      <a href="#prova">Casos</a>
+      <a href="#cta" class="cta-mini">Ver o painel</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ============ HERO ============ -->
+<section class="hero">
+  <div class="container">
+    <div class="hero-grid">
+      <div>
+        <span class="eyebrow reveal r-1">NR · LGPD · Código de Ética · Fiscal</span>
+        <h1 class="reveal r-2">
+          Saiba <span class="accent">exatamente quem fez</span> cada treinamento obrigatório.
+        </h1>
+        <p class="sub reveal r-3">
+          Reciclagem automática, alertas de vencimento e relatório pronto para fiscalização.
+        </p>
+        <div class="hero-ctas reveal r-4">
+          <a href="#cta" class="btn">Ver painel de obrigatórios <span class="arrow"></span></a>
+          <a href="#como-funciona" class="btn btn-ghost">Ver como funciona</a>
+        </div>
+      </div>
+      <aside class="hero-evidence reveal r-5">
+        <div class="evidence-item">
+          <div class="num"><span class="red">100%</span></div>
+          <div class="desc">Aderência visível por unidade, área e função.</div>
+          <span class="src">Painel Erudio</span>
+        </div>
+        <div class="evidence-item">
+          <div class="num">30/60/90</div>
+          <div class="desc">Alertas de vencimento antes da reciclagem expirar.</div>
+          <span class="src">Automação</span>
+        </div>
+        <div class="evidence-item">
+          <div class="num">MPT<span style="font-size:0.5em; letter-spacing: 0.04em; color: var(--ink-soft);"> ready</span></div>
+          <div class="desc">Relatório de fiscalização exportável em um clique.</div>
+          <span class="src">Compliance</span>
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PROBLEMA ============ -->
+<section id="problema">
+  <div class="container">
+    <header class="section-head">
+      <span class="section-tag"><span class="num">01</span> Problema</span>
+      <h2>NRs em planilha <span class="italic">é só o MPT chegar.</span></h2>
+    </header>
+
+    <ol class="pain-list">
+      <li>
+        <span class="pn">P/01</span>
+        <span class="pt">NRs em planilhas separadas por unidade.</span>
+      </li>
+      <li>
+        <span class="pn">P/02</span>
+        <span class="pt">Reciclagem perdida sem ninguém avisar.</span>
+      </li>
+      <li>
+        <span class="pn">P/03</span>
+        <span class="pt">MPT chega e ninguém acha o certificado.</span>
+      </li>
+      <li>
+        <span class="pn">P/04</span>
+        <span class="pt">Gestor não sabe quem está vencido.</span>
+      </li>
+      <li>
+        <span class="pn">P/05</span>
+        <span class="pt">Treinamento online sem rastro de quem fez.</span>
+      </li>
+    </ol>
+
+    <p class="pain-closer">Fiscalização não espera <em>planilha consolidada.</em></p>
+  </div>
+</section>
+
+<!-- ============ SOLUÇÃO ============ -->
+<section>
+  <div class="container">
+    <header class="section-head">
+      <span class="section-tag"><span class="num">02</span> Solução</span>
+      <h2>Um painel. <span class="italic">Toda NR, toda unidade, toda pessoa.</span></h2>
+    </header>
+
+    <p class="solucao-statement">
+      Cada treinamento obrigatório com <strong>data, comprovação e validade</strong> rastreáveis.
+    </p>
+  </div>
+</section>
+
+<!-- ============ BENEFÍCIOS ============ -->
+<section id="beneficios">
+  <div class="container">
+    <header class="section-head">
+      <span class="section-tag"><span class="num">03</span> Plataforma</span>
+      <h2>O que muda na sua T&D <span class="italic">a partir do dia 1.</span></h2>
+    </header>
+
+    <div class="benefits">
+      <article class="benefit">
+        <span class="bnum">B/01</span>
+        <h3>Dashboard <em>por unidade</em>.</h3>
+        <p>% de aderência por NR, por filial, por turno.</p>
+      </article>
+      <article class="benefit">
+        <span class="bnum">B/02</span>
+        <h3>Alertas <em>30/60/90 dias</em>.</h3>
+        <p>Reciclagem nunca mais vence sem aviso.</p>
+      </article>
+      <article class="benefit">
+        <span class="bnum">B/03</span>
+        <h3>Certificado on-demand.</h3>
+        <p>Colaborador baixa. Gestor baixa. Auditor baixa.</p>
+      </article>
+      <article class="benefit">
+        <span class="bnum">B/04</span>
+        <h3>Trilha por função.</h3>
+        <p>Quem opera empilhadeira faz NR-11. Sem exceção.</p>
+      </article>
+      <article class="benefit">
+        <span class="bnum">B/05</span>
+        <h3>Relatório <em>MPT-ready</em>.</h3>
+        <p>Exporta com data, instrutor e carga horária por colaborador.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ============ COMO FUNCIONA ============ -->
+<section id="como-funciona">
+  <div class="container">
+    <header class="section-head">
+      <span class="section-tag"><span class="num">04</span> Implantação</span>
+      <h2>Três passos. <span class="italic">Painel no ar em 30 dias.</span></h2>
+    </header>
+
+    <div class="steps">
+      <div class="step">
+        <span class="snum">Passo 01</span>
+        <h3>Importação das NRs atuais.</h3>
+        <p>Planilhas e certificados existentes entram com data e validade.</p>
+      </div>
+      <div class="step">
+        <span class="snum">Passo 02</span>
+        <h3>Matriz por função.</h3>
+        <p>Quem precisa fazer o quê, por cargo e unidade.</p>
+      </div>
+      <div class="step">
+        <span class="snum">Passo 03</span>
+        <h3>Painel rodando.</h3>
+        <p>Alertas ativos. Gestores e auditores acessam direto.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PROVA SOCIAL ============ -->
+<section id="prova">
+  <div class="container">
+    <header class="section-head">
+      <span class="section-tag"><span class="num">05</span> Casos</span>
+      <h2>Quem já roda <span class="italic">obrigatórios no Erudio.</span></h2>
+    </header>
+
+    <div class="proofs">
+      <article class="proof">
+        <span class="org">Plataforma Erudio · Compliance</span>
+        <div class="stat"><span class="red">+20.000</span></div>
+        <div class="stat-label">treinamentos e certificados gerenciados.</div>
+        <div class="secondary-stat">
+          <span class="red">24</span> anos
+          <span class="lbl">de plataforma com logs preservados.</span>
+        </div>
+      </article>
+      <article class="proof">
+        <span class="org">Painel de Obrigatórios</span>
+        <div class="stat">100<span style="font-size:0.5em; vertical-align: 0.18em; color: var(--ink-soft); letter-spacing: 0.02em;">%</span></div>
+        <div class="stat-label">aderência visível por unidade e função.</div>
+        <div class="secondary-stat">
+          <span class="red">MPT-ready</span> exportável
+          <span class="lbl">com data, carga horária e instrutor.</span>
+        </div>
+      </article>
+    </div>
+
+    <!-- Testimonial -->
+    <div class="testimonial">
+      <span class="label">Depoimento</span>
+      <div>
+        <blockquote>Gosto muito.</blockquote>
+        <cite>
+          Heron Gubiani
+          <span class="role">Cliente Erudio</span>
+        </cite>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CTA FINAL ============ -->
+<section id="cta" class="cta-final">
+  <div class="container">
+    <header class="section-head">
+      <span class="section-tag"><span class="num">06</span> Próximo passo</span>
+      <h2>Quer ver o painel <em>com seus dados?</em></h2>
+    </header>
+    <p class="sub">
+      Em 30 minutos importamos sua matriz de NRs e mostramos o painel rodando.
+    </p>
+    <div class="row">
+      <a href="#" class="btn">Ver painel de obrigatórios <span class="arrow"></span></a>
+      <a href="#" class="btn btn-ghost">Falar com especialista em SST</a>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FAQ ============ -->
+<section id="faq">
+  <div class="container">
+    <header class="section-head">
+      <span class="section-tag"><span class="num">07</span> FAQ</span>
+      <h2>Perguntas de quem cuida <span class="italic">de obrigatórios.</span></h2>
+    </header>
+
+    <div class="faq-list">
+      <details>
+        <summary>Como funciona o alerta de vencimento?</summary>
+        <div class="faq-body">
+          Cada NR tem prazo configurado. O sistema dispara avisos 30, 60 e 90 dias antes — para o colaborador, gestor e RH.
+        </div>
+      </details>
+      <details>
+        <summary>Geramos certificado válido para fiscalização?</summary>
+        <div class="faq-body">
+          Sim. Certificado com data, carga horária, instrutor e CPF — assinado e exportável em PDF.
+        </div>
+      </details>
+      <details>
+        <summary>Cobre NR-10, NR-35, NR-12 e demais?</summary>
+        <div class="faq-body">
+          Sim. A plataforma é agnóstica ao conteúdo — você cadastra qualquer NR ou treinamento obrigatório.
+        </div>
+      </details>
+      <details>
+        <summary>LGPD, antissuborno e código de ética também?</summary>
+        <div class="faq-body">
+          Sim. Mesmo painel, mesma matriz por função, mesma reciclagem programada.
+        </div>
+      </details>
+      <details>
+        <summary>O Erudio integra com nosso HRIS?</summary>
+        <div class="faq-body">
+          Conteúdo a definir.
+          <br><em class="note">Lacuna no material — preciso confirmar</em>
+        </div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer>
+  <div class="container row">
+    <div>
+      <span class="brand-foot">
+        <span style="display:inline-block; width:8px; height:8px; background: var(--erudio-red); margin-right:8px; vertical-align: 1px;"></span>
+        Erudio Corporativo
+      </span>
+      <div style="font-family: var(--font-body); color: var(--ink-soft); font-size: 14px; margin-top: 8px; max-width: 56ch;">
+        Painel de treinamentos obrigatórios, NRs e compliance corporativo.
+      </div>
+    </div>
+    <div class="legal">© Erudio · Todos os direitos reservados</div>
+  </div>
+</footer>
+
+</body>
+</html>

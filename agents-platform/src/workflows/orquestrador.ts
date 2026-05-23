@@ -35,6 +35,8 @@ export interface ContextoOrquestrador {
   arvore: No[];
   caps: CapsPalco;
   motivo_chamada: 'apos_veredito' | 'criacao_raiz';
+  run_id?: string;
+  signal?: AbortSignal;
 }
 
 function resumirNoParaOrquestrador(no: No): Record<string, unknown> {
@@ -222,6 +224,8 @@ Decida a próxima ação. Devolva APENAS o JSON.`;
     max_tokens: 2048,
     temperature: 0.4,
     timeout_ms: 45_000,
+    run_id: ctx.run_id,
+    signal: ctx.signal,
   });
   const decisao = extractJson<DecisaoOrquestrador>(raw);
   // Normaliza campos nulos

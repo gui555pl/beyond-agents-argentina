@@ -1,12 +1,11 @@
 /**
- * Cost tracker em-process.
+ * Cost tracker em-process — isolado por run.
  *
- * Acumula tokens (input + output) e custos USD de todas as chamadas Claude
- * feitas durante a execução do pipeline. Singleton de módulo — uma execução
- * de pipeline = uma instância de tracker.
+ * Antes era singleton de módulo. Com multi-tenant (várias runs simultâneas),
+ * cada run precisa do próprio tracker. `getTracker(runId)` cria sob demanda;
+ * `disposeTracker(runId)` libera ao fim da run.
  *
  * Tabelas de preço (USD por 1M tokens) — Anthropic, dez/2025.
- * Mantenha-se atualizado via https://www.anthropic.com/pricing
  */
 
 const PRICING: Record<string, { input: number; output: number }> = {
@@ -27,12 +26,15 @@ export interface CallRecord {
   timestamp: string;
 }
 
-class CostTracker {
-  private records: CallRecord[] = [];
+export interface CostTotals {
+  calls: number;
+  input_tokens: number;
+  output_tokens: number;
+  cost_usd: number;
+}
 
-  reset(): void {
-    this.records = [];
-  }
+export class CostTracker {
+  private records: CallRecord[] = [];
 
   registrar(
     agente: string,
@@ -47,7 +49,8 @@ class CostTracker {
       console.warn(`[cost-tracker] Modelo desconhecido "${modelo}" — usando preço Haiku 4.5.`);
       costUsd = (inputTokens / 1_000_000) * 1.0 + (outputTokens / 1_000_000) * 5.0;
     } else {
-      costUsd = (inputTokens / 1_000_000) * pricing.input + (outputTokens / 1_000_000) * pricing.output;
+      costUsd =
+        (inputTokens / 1_000_000) * pricing.input + (outputTokens / 1_000_000) * pricing.output;
     }
     const record: CallRecord = {
       agente,
@@ -62,8 +65,8 @@ class CostTracker {
     return record;
   }
 
-  total(): { calls: number; input_tokens: number; output_tokens: number; cost_usd: number } {
-    return this.records.reduce(
+  total(): CostTotals {
+    return this.records.reduce<CostTotals>(
       (acc, r) => ({
         calls: acc.calls + 1,
         input_tokens: acc.input_tokens + r.input_tokens,
@@ -74,13 +77,8 @@ class CostTracker {
     );
   }
 
-  byAgent(): Record<
-    string,
-    { calls: number; input_tokens: number; output_tokens: number; cost_usd: number }
-  > {
-    return this.records.reduce<
-      Record<string, { calls: number; input_tokens: number; output_tokens: number; cost_usd: number }>
-    >((acc, r) => {
+  byAgent(): Record<string, CostTotals> {
+    return this.records.reduce<Record<string, CostTotals>>((acc, r) => {
       const cur = acc[r.agente] ?? { calls: 0, input_tokens: 0, output_tokens: 0, cost_usd: 0 };
       acc[r.agente] = {
         calls: cur.calls + 1,
@@ -97,4 +95,38 @@ class CostTracker {
   }
 }
 
-export const costTracker = new CostTracker();
+// ─────────────────────────────── Registry ──────────────────────────────
+
+const trackers = new Map<string, CostTracker>();
+
+/** Singleton fallback usado fora de uma run (CLI, Mastra Studio). */
+const fallback = new CostTracker();
+
+export function getTracker(runId?: string | null): CostTracker {
+  if (!runId) return fallback;
+  let t = trackers.get(runId);
+  if (!t) {
+    t = new CostTracker();
+    trackers.set(runId, t);
+  }
+  return t;
+}
+
+export function disposeTracker(runId: string): void {
+  trackers.delete(runId);
+}
+
+export function listTrackerIds(): string[] {
+  return [...trackers.keys()];
+}
+
+/**
+ * Backwards compat: o CLI runner (run-pipeline.ts) usa o tracker singleton.
+ * Mantém a API antiga (`costTracker.reset()` / `.registrar()`) sem quebrar.
+ */
+export const costTracker = Object.assign(fallback, {
+  reset(): void {
+    // Cria um tracker novo para o singleton sem mexer no registry de runs.
+    (fallback as unknown as { records: CallRecord[] }).records = [];
+  },
+});

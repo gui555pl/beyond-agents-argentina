@@ -1,14 +1,18 @@
 /**
  * Store global da UI — Zustand.
  *
- * Mantém estado de UMA execução por vez. Reduz cada `EventoPipeline` no estado
- * adequado. Eventos são log-friendly (gravados em `eventos` pra debug/decoração).
+ * Mantém estado da run ATIVA na aba atual. Cada aba/usuário tem sua run;
+ * o backend é multi-tenant (até 3 runs paralelas). Quando o usuário navega
+ * para outra `/runs/:runId`, chamamos `hidratar(runId, ...)` que zera a
+ * store e abre o SSE para a nova run.
  */
 import { create } from 'zustand';
 import type {
+  ConnectionStatus,
   EventoPipeline,
   No,
   RespostaPersona,
+  RunStatus,
   SubmissaoAurora,
 } from './tipos';
 
@@ -24,6 +28,10 @@ interface CustoBlock {
 export interface StoreState {
   fase: Fase;
   runId: string | null;
+  submissionId: string | null;
+  nomeSolucao: string | null;
+  status: RunStatus | null;
+  queuePosition: number;
   submissao: SubmissaoAurora | null;
   hipoteseRaiz: string | null;
   nos: Record<string, No>;
@@ -35,25 +43,42 @@ export interface StoreState {
   custoPorAgente: Record<string, CustoBlock> | null;
   duracaoMs: number | null;
   erro: string | null;
+  connectionStatus: ConnectionStatus;
   // ações
   setFase: (f: Fase) => void;
   iniciarRun: (
     runId: string,
     submissao: SubmissaoAurora,
     hipoteseRaiz: string,
+    extra?: { submissionId?: string; nomeSolucao?: string },
   ) => void;
+  hidratarRun: (info: {
+    runId: string;
+    submissionId: string;
+    nomeSolucao: string | null;
+    status: RunStatus;
+    queuePosition: number;
+    submissao: SubmissaoAurora;
+    hipoteseRaiz: string;
+  }) => void;
+  setStatus: (status: RunStatus, queuePosition?: number) => void;
   aplicarEvento: (e: EventoPipeline) => void;
   selecionar: (id: string | null) => void;
   reset: () => void;
   setErro: (msg: string | null) => void;
+  setConnection: (status: ConnectionStatus) => void;
 }
 
 const ESTADO_INICIAL: Omit<
   StoreState,
-  'setFase' | 'iniciarRun' | 'aplicarEvento' | 'selecionar' | 'reset' | 'setErro'
+  'setFase' | 'iniciarRun' | 'hidratarRun' | 'setStatus' | 'aplicarEvento' | 'selecionar' | 'reset' | 'setErro' | 'setConnection'
 > = {
   fase: 'home',
   runId: null,
+  submissionId: null,
+  nomeSolucao: null,
+  status: null,
+  queuePosition: 0,
   submissao: null,
   hipoteseRaiz: null,
   nos: {},
@@ -65,6 +90,7 @@ const ESTADO_INICIAL: Omit<
   custoPorAgente: null,
   duracaoMs: null,
   erro: null,
+  connectionStatus: 'idle',
 };
 
 export const useStore = create<StoreState>((set, get) => ({
@@ -72,15 +98,37 @@ export const useStore = create<StoreState>((set, get) => ({
 
   setFase: (fase) => set({ fase }),
   setErro: (erro) => set({ erro }),
+  setConnection: (connectionStatus) => set({ connectionStatus }),
 
-  iniciarRun: (runId, submissao, hipoteseRaiz) =>
+  iniciarRun: (runId, submissao, hipoteseRaiz, extra) =>
     set({
       ...ESTADO_INICIAL,
       runId,
+      submissionId: extra?.submissionId ?? null,
+      nomeSolucao: extra?.nomeSolucao ?? submissao.solucao.nome ?? null,
       submissao,
       hipoteseRaiz,
+      status: 'starting',
       fase: 'live',
     }),
+
+  hidratarRun: (info) =>
+    set({
+      ...ESTADO_INICIAL,
+      runId: info.runId,
+      submissionId: info.submissionId,
+      nomeSolucao: info.nomeSolucao ?? info.submissao.solucao.nome ?? null,
+      status: info.status,
+      queuePosition: info.queuePosition,
+      submissao: info.submissao,
+      hipoteseRaiz: info.hipoteseRaiz,
+      fase: info.status === 'done' || info.status === 'failed' || info.status === 'canceled'
+        ? 'fim'
+        : 'live',
+    }),
+
+  setStatus: (status, queuePosition) =>
+    set({ status, queuePosition: queuePosition ?? get().queuePosition }),
 
   reset: () => set({ ...ESTADO_INICIAL }),
 
@@ -100,11 +148,17 @@ export const useStore = create<StoreState>((set, get) => ({
           : [...state.ordemCriacao, no.id];
         // Auto-seleciona o primeiro nó
         const selecionadoId = state.selecionadoId ?? no.id;
+        // Primeiro evento de qualquer run promove o status pra 'running'
+        const status: RunStatus =
+          state.status === 'queued' || state.status === 'starting' || state.status === null
+            ? 'running'
+            : state.status;
         set({
           nos: { ...state.nos, [no.id]: no },
           ordemCriacao: ordem,
           selecionadoId,
           eventos,
+          status,
         });
         break;
       }
@@ -287,6 +341,7 @@ export const useStore = create<StoreState>((set, get) => ({
           custoPorAgente: evento.custo_por_agente,
           duracaoMs: evento.duracao_ms,
           fase: 'fim',
+          status: 'done',
           eventos,
         });
         break;

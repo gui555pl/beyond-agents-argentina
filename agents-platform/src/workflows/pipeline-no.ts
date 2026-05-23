@@ -59,9 +59,18 @@ function loadAgentPrompt(nome: string): string {
 }
 
 const PROMPT_VALIDADOR = loadAgentPrompt('validador-aurora');
-const PERSONAS_POOL: Persona[] = JSON.parse(
-  readFileSync(resolve(FIXTURES_DIR, 'personas.json'), 'utf-8'),
-);
+
+function loadPersonas(arquivo: string): Persona[] {
+  return JSON.parse(readFileSync(resolve(FIXTURES_DIR, arquivo), 'utf-8')) as Persona[];
+}
+
+const PERSONAS_POR_VERTICAL: Record<string, Persona[]> = {
+  healthtech: loadPersonas('personas-healthtech.json'),
+  edtech: loadPersonas('personas-edtech.json'),
+};
+
+// Pool padrão (HealthTech) — usado quando a vertical não tem pool dedicado.
+const PERSONAS_POOL_DEFAULT: Persona[] = PERSONAS_POR_VERTICAL.healthtech;
 /**
  * Fallback determinístico opcional para Buscador + Validador.
  *
@@ -79,6 +88,8 @@ export interface RodarPipelineNoParams {
   dossie_compartilhado: DossieBuscador | null;
   caps: CapsPalco;
   emit: Listener;
+  run_id?: string;
+  signal?: AbortSignal;
 }
 
 export interface RodarPipelineNoResultado {
@@ -90,6 +101,8 @@ async function rodarValidador(
   submissao: SubmissaoAurora,
   hipoteseTitulo: string,
   dossie: DossieBuscador,
+  runId?: string,
+  signal?: AbortSignal,
 ): Promise<OutputValidador> {
   const input = {
     submissao_aurora: submissao,
@@ -104,6 +117,8 @@ async function rodarValidador(
     max_tokens: 4096,
     temperature: 0.2,
     timeout_ms: 60_000,
+    run_id: runId,
+    signal,
   });
   return extractJson<OutputValidador>(raw);
 }
@@ -163,21 +178,40 @@ const DOSSIES_POR_VERTICAL: Record<string, DossieBuscador> = {
       'Setor regulado por CFM/ANVISA/ANS, mas SaaS de gestão NÃO exige licença específica se não fizer diagnóstico autônomo. Triagem assistida com médico no loop tem precedente (Conexa, Memed, iClinic). Risco remanescente é LGPD em saúde — mitigável com compliance, não é barreira de entrada.',
   },
   edtech: {
-    concorrentes_validados: ['Descomplica', 'Geekie One', 'Sas Educação'],
-    concorrentes_omitidos_pelo_founder: ['Layers', 'Lyceum', 'Edify'],
+    concorrentes_validados: [
+      'TOTVS Educacional — ERP educacional consolidado, sem IA generativa nativa, ticket R$ 8-25k/mês',
+      'Sponte — software de gestão acadêmica para IES privadas, sem auditoria de NRs',
+      'Moodle e Canvas — LMS gratuitos/baratos, sem rodízio nem auditoria, sem prontuário acadêmico',
+      'Treinaut e SafetyLab — foco apenas em treinamento de NRs, sem cobertura acadêmica/residência',
+      'Estácio Digital — solução interna escalada, indisponível para outras IES',
+    ],
+    concorrentes_omitidos_pelo_founder: [
+      'Layers — gestão acadêmica para IES médias R$ 4-12k/mês, lançou módulo IA em 2025',
+      'Lyceum — software educacional B2B histórico, base instalada forte em universidades federais',
+      'Edify — plataforma de SST B2B, parceria oficial com Anamt',
+      'TaskJob — plataforma de gestão de residência médica em pilot no HU-USP desde 2024',
+      'Holos Brasil — gestão acadêmica para cursinhos de medicina, vendido para SOMOS Educação',
+    ],
     tam_sam_som_validado:
-      'TAM R$ 15Bi (EdTech BR). SAM R$ 800M-1.2Bi para nichos de aprendizagem assistida por IA.',
+      'TAM R$ 8-12Bi (EdTech B2B Brasil 2025 — gestão acadêmica + treinamento corporativo + SST). SAM R$ 1.6-2.4Bi (~180 hospitais-escola + 1.200 universidades médias + 40.000 empresas com 200-2.000 funcionários). SOM R$ 240M em 3 anos é defensável com 1.5% de penetração.',
     dores_confirmadas: [
-      'Alta evasão em cursos online',
-      'Dificuldade de personalização de trilhas',
-      'Tempo do professor consumido por correção manual',
+      'Coordenadores de residência médica gastam 10-14h/semana só em planilha de rodízio (estudos AMB 2024)',
+      'Evasão de calouros em universidades médias atinge 28-32% no primeiro semestre (INEP 2024)',
+      'Mais de 80% das áreas de SST corporativo sofreram não-conformidade em auditoria nos últimos 18 meses',
+      'Sistemas enterprise (TOTVS, Sponte) custam R$ 8-25k/mês — barreira real para mid-market',
+      '4 a 7 sistemas separados (matrícula, LMS, frequência, financeiro, MEC) sem integração entre si',
+      'Conselho de Medicina exige diário de atos médicos do residente — preenchimento manual é abandonado',
     ],
     tendencias: [
-      'BNCC e PNE pressionam por adaptive learning',
-      'IA generativa para tutoria explodiu em 2024',
+      'Resolução CNE/CES nº 600/2025 exige prontuário acadêmico estruturado em residências médicas',
+      'MEC SISTEC e e-MEC pressionam IES por interoperabilidade de dados acadêmicos',
+      'Auditorias do MTE com prova digital (assinatura + GPS + foto) viraram padrão em 2025',
+      'IA generativa para geração de plano de aula e transcrição de supervisão cresceu 47% YoY (2024-2025)',
+      'Dispensa de licitação via IMA (Instituto Municipal de Apoio) virou canal real para EdTech B2G em 2025',
+      'Penetração de IA generativa em gestão educacional B2B ainda <12% em 2025',
     ],
     auto_research_juridico:
-      'LGPD aplicada a dados de menores requer compliance, sem barreira impeditiva.',
+      'Setor regulado pelo MEC (CNE/CES) e MTE (NRs), mas SaaS de gestão educacional NÃO exige licença específica para operar. LGPD educacional já mapeada (Resolução CNE/CES 600/2025 fornece base). Para NRs, o produto precisa emitir registro auditável com assinatura digital + GPS + foto + prova de presença — todos cobertos. Para residência médica, conformidade com Resolução CNPM 50/2020 e DCN de cada especialidade — templates já validados. Sem barreira regulatória impeditiva.',
   },
 };
 
@@ -252,10 +286,11 @@ function gerarValidadorDeterministico(
   };
 }
 
-function selecionarPersonas(qtd: number): Persona[] {
-  if (qtd >= PERSONAS_POOL.length) return PERSONAS_POOL;
-  // Amostra estável: pega as primeiras qtd — diversidade já balanceada no fixture
-  return PERSONAS_POOL.slice(0, qtd);
+function selecionarPersonas(qtd: number, vertical?: string): Persona[] {
+  const v = (vertical ?? '').toLowerCase();
+  const pool = PERSONAS_POR_VERTICAL[v] ?? PERSONAS_POOL_DEFAULT;
+  if (qtd >= pool.length) return pool;
+  return pool.slice(0, qtd);
 }
 
 /**
@@ -309,6 +344,8 @@ export async function rodarPipelineNo({
   dossie_compartilhado,
   caps,
   emit,
+  run_id,
+  signal,
 }: RodarPipelineNoParams): Promise<RodarPipelineNoResultado> {
   emit({ tipo: 'estado_mudou', no_id: no.id, estado: 'validando' });
   no.estado = 'validando';
@@ -328,7 +365,7 @@ export async function rodarPipelineNo({
   // critérios. VETO regulatório aqui poda imediatamente, sem 3-7.
   const validador = DEMO_FAST_VALIDATION
     ? gerarValidadorDeterministico(submissao, no.hipotese.titulo)
-    : await rodarValidador(submissao, no.hipotese.titulo, dossie);
+    : await rodarValidador(submissao, no.hipotese.titulo, dossie, run_id, signal);
   no.validador = validador;
   emit({
     tipo: 'validador_pronto',
@@ -356,6 +393,7 @@ export async function rodarPipelineNo({
     headline: no.hipotese.lp_headline_sugerida,
     subhead: no.hipotese.lp_subhead_sugerida,
     cta: no.hipotese.lp_cta_sugerido,
+    vertical: submissao.solucao.vertical,
   });
   no.lp = lpRes;
   emit({
@@ -389,12 +427,14 @@ export async function rodarPipelineNo({
   });
 
   // 7. Swarm (agente nº 6 — "Miro Fish") — N personas LLM em paralelo
-  const personas = selecionarPersonas(caps.PERSONAS_POR_LP);
+  const personas = selecionarPersonas(caps.PERSONAS_POR_LP, submissao.solucao.vertical);
   const swarm = await runSwarm({
     lp_id: lpRes.lp_id,
     lp_html: lpRes.html,
     personas,
     contexto_extra: `Hipótese sendo testada: ${no.hipotese.titulo} (${no.hipotese.publico_alvo})`,
+    run_id,
+    signal,
     onProgress: (resposta, done, total) => {
       emit({
         tipo: 'persona_respondeu',

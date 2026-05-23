@@ -6,9 +6,11 @@
  * para o score final.
  */
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useStore } from '../lib/store';
 
 export function Scoreboard() {
+  const navigate = useNavigate();
   const ranking = useStore((s) => s.ranking);
   const nos = useStore((s) => s.nos);
   const custoTotal = useStore((s) => s.custoTotal);
@@ -16,6 +18,11 @@ export function Scoreboard() {
   const duracaoMs = useStore((s) => s.duracaoMs);
   const reset = useStore((s) => s.reset);
   const [fechado, setFechado] = useState(false);
+
+  const onNova = () => {
+    reset();
+    navigate('/submit');
+  };
 
   if (fechado) return null;
   const top3 = ranking.slice(0, 3);
@@ -100,7 +107,7 @@ export function Scoreboard() {
 
         <footer className="mt-10 flex items-center justify-between">
           <button
-            onClick={reset}
+            onClick={onNova}
             className="rounded-md bg-primary px-7 py-3 text-button text-on-primary transition hover:bg-primary-active"
           >
             Nova validação

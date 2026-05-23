@@ -9,22 +9,29 @@
     "build": "mastra build",
     "create-agent": "tsx scripts/create-agent.ts",
     "pipeline": "tsx scripts/run-pipeline.ts",
-    "server": "tsx watch src/server.ts"
+    "server": "tsx watch src/server.ts",
+    "start": "tsx src/server.ts"
+  },
+  "engines": {
+    "node": ">=22.0.0"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.79",
     "@anthropic-ai/sdk": "^0.98.0",
     "@mastra/core": "^1.36.0",
     "@mastra/loggers": "^1.1.1",
+    "better-sqlite3": "^12.10.0",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "express-rate-limit": "^8.5.2",
     "mastra": "^1.10.0",
     "p-limit": "^7.3.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {
     "@inquirer/prompts": "^8.4.3",
+    "@types/better-sqlite3": "^7.6.13",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/node": "^25.9.1",

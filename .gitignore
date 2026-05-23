@@ -1,0 +1,37 @@
+# Dependências
+**/node_modules/
+
+# Variáveis de ambiente (NUNCA commitar)
+**/.env
+**/.env.local
+**/.env.*.local
+!**/.env.example
+
+# Builds e output
+**/dist/
+**/build/
+**/.mastra/
+**/out/
+**/tsconfig.tsbuildinfo
+
+# Dados runtime (SQLite, etc)
+**/data/
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+
+# Logs
+*.log
+npm-debug.log*
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+
+# Deploy artifacts locais
+.vercel/
+.fly/

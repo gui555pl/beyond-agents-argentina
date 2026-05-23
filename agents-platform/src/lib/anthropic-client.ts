@@ -2,15 +2,13 @@
  * Cliente Anthropic compartilhado para o pipeline.
  *
  * - Usa @anthropic-ai/sdk diretamente (não passa por Mastra).
- * - Wrappers chamam o cost tracker automaticamente.
- * - Função `callAgent` é o canal único de chamadas LLM do pipeline.
- *
- * Por que não usar o Agent do Mastra direto? Porque queremos controle granular
- * sobre paralelismo, response_format, retries e tracking de tokens — e isto é
- * mais simples sem o overhead do runtime do Studio.
+ * - Cost tracker é por `runId` para suportar múltiplas runs simultâneas.
+ *   Sem `runId`, cai num tracker singleton (CLI / Mastra Studio).
+ * - `AbortSignal` propaga até o SDK — DELETE da run aborta as chamadas LLM
+ *   em andamento de verdade.
  */
 import Anthropic from '@anthropic-ai/sdk';
-import { costTracker } from './cost-tracker.js';
+import { getTracker } from './cost-tracker.js';
 
 const apiKey = process.env.ANTHROPIC_API_KEY;
 if (!apiKey) {
@@ -19,7 +17,6 @@ if (!apiKey) {
 
 export const anthropic = new Anthropic({
   apiKey: apiKey ?? '',
-  // Evita requests pendurados por tempo indefinido.
   timeout: 45_000,
 });
 
@@ -31,6 +28,10 @@ export interface CallAgentParams {
   max_tokens?: number;
   temperature?: number;
   timeout_ms?: number;
+  /** Run em que esta chamada está acontecendo — endereça o cost tracker. */
+  run_id?: string | null;
+  /** Sinal de abort propagado até o SDK Anthropic. */
+  signal?: AbortSignal;
 }
 
 /**
@@ -45,6 +46,8 @@ export async function callAgent({
   max_tokens = 4096,
   temperature = 0.4,
   timeout_ms = 45_000,
+  run_id,
+  signal,
 }: CallAgentParams): Promise<string> {
   const t0 = Date.now();
   const resp = await anthropic.messages.create(
@@ -57,10 +60,11 @@ export async function callAgent({
     },
     {
       timeout: timeout_ms,
+      signal,
     },
   );
   const durationMs = Date.now() - t0;
-  costTracker.registrar(
+  getTracker(run_id).registrar(
     agente,
     modelo,
     resp.usage.input_tokens,
@@ -75,11 +79,10 @@ export async function callAgent({
 }
 
 /**
- * Extrai o primeiro bloco JSON do texto. Aceita tanto JSON puro quanto
- * markdown ```json ... ``` ou JSON entre prosa. Lança se não achar.
+ * Extrai o primeiro bloco JSON do texto. Aceita JSON puro, markdown
+ * ```json ... ``` ou JSON entre prosa. Lança se não achar.
  */
 export function extractJson<T = unknown>(raw: string): T {
-  // 1. Tenta JSON puro
   const trimmed = raw.trim();
   if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
     try {
@@ -88,12 +91,10 @@ export function extractJson<T = unknown>(raw: string): T {
       // segue para fallback
     }
   }
-  // 2. Tenta extrair de ```json ... ```
   const fenceMatch = raw.match(/```(?:json)?\s*([\s\S]*?)```/);
   if (fenceMatch) {
     return JSON.parse(fenceMatch[1].trim()) as T;
   }
-  // 3. Procura o primeiro { ... } balanceado
   const start = raw.indexOf('{');
   if (start === -1) throw new Error('Resposta sem JSON detectável.');
   let depth = 0;

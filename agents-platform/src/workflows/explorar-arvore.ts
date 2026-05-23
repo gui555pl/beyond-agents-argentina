@@ -14,7 +14,7 @@
  */
 import { rodarPipelineNo, type RodarPipelineNoResultado } from './pipeline-no.js';
 import { chamarOrquestrador } from './orquestrador.js';
-import { costTracker } from '../lib/cost-tracker.js';
+import { getTracker } from '../lib/cost-tracker.js';
 import {
   CAPS_DEFAULT,
   type CapsPalco,
@@ -31,6 +31,8 @@ interface InputPipeline {
   hipotese_raiz: string;
   caps?: Partial<CapsPalco>;
   listener?: Listener;
+  run_id?: string;
+  signal?: AbortSignal;
 }
 
 interface ResultadoPipeline {
@@ -98,6 +100,8 @@ export async function explorarArvore({
   hipotese_raiz,
   caps: capsOverride,
   listener,
+  run_id,
+  signal,
 }: InputPipeline): Promise<ResultadoPipeline> {
   const caps: CapsPalco = { ...CAPS_DEFAULT, ...(capsOverride ?? {}) };
   const emit: Listener = listener ?? noopListener;
@@ -140,6 +144,8 @@ export async function explorarArvore({
           dossie_compartilhado,
           caps,
           emit,
+          run_id,
+          signal,
         }),
         new Promise<RodarPipelineNoResultado>((_, reject) =>
           setTimeout(() => reject(new Error('timeout')), caps.TIMEOUT_POR_NO_MS),
@@ -149,6 +155,14 @@ export async function explorarArvore({
         dossie_compartilhado = resultado.dossie_para_compartilhar;
       }
     } catch (err) {
+      const aborted = signal?.aborted || (err instanceof Error && err.name === 'AbortError');
+      if (aborted) {
+        no.estado = 'podada';
+        no.erro = 'abortada';
+        emit({ tipo: 'estado_mudou', no_id: no.id, estado: 'podada' });
+        encerrou_por = 'erro';
+        break;
+      }
       no.estado = err instanceof Error && err.message === 'timeout' ? 'timeout' : 'podada';
       no.erro = err instanceof Error ? err.message : String(err);
       emit({ tipo: 'estado_mudou', no_id: no.id, estado: no.estado });
@@ -168,6 +182,8 @@ export async function explorarArvore({
         arvore,
         caps,
         motivo_chamada: 'apos_veredito',
+        run_id,
+        signal,
       });
     } catch (err) {
       no.estado = 'podada';
@@ -325,11 +341,12 @@ export async function explorarArvore({
     .map((n) => ({ no: n, score_final: n.score_final! }))
     .sort((a, b) => b.score_final - a.score_final);
 
+  const tracker = getTracker(run_id);
   emit({
     tipo: 'pipeline_finalizado',
     ranking: ranking.map((r) => ({ no_id: r.no.id, score_final: r.score_final })),
-    custo_total: costTracker.total(),
-    custo_por_agente: costTracker.byAgent(),
+    custo_total: tracker.total(),
+    custo_por_agente: tracker.byAgent(),
     duracao_ms: Date.now() - t0,
   });
 

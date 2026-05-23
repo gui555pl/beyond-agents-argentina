@@ -22,6 +22,7 @@ interface LpIndexEntry {
   id: string;
   arquivo_lp: string;
   arquivo_ads: string;
+  vertical?: string;
   angulo: string;
   publico: string;
   tags: string[];
@@ -33,6 +34,7 @@ export interface GerarLpInput {
   subhead: string;
   cta: string;
   lp_id?: string;
+  vertical?: string;
 }
 
 export interface GerarLpOutput {
@@ -48,6 +50,14 @@ function loadIndex(): LpIndexEntry[] {
     throw new Error(`lp-index.json não encontrado em ${LP_INDEX_PATH}`);
   }
   return JSON.parse(readFileSync(LP_INDEX_PATH, 'utf-8')) as LpIndexEntry[];
+}
+
+function filtrarPorVertical(index: LpIndexEntry[], vertical?: string): LpIndexEntry[] {
+  if (!vertical) return index;
+  const v = vertical.toLowerCase();
+  const filtered = index.filter((e) => (e.vertical ?? 'healthtech').toLowerCase() === v);
+  // Fallback: se a vertical não tem LPs específicas, usa o pool HealthTech (calibrado).
+  return filtered.length > 0 ? filtered : index.filter((e) => (e.vertical ?? 'healthtech') === 'healthtech');
 }
 
 function pickLp(index: LpIndexEntry[], hipotese: string, lpIdHint?: string): LpIndexEntry {
@@ -77,7 +87,8 @@ function injectPlaceholders(html: string, headline: string, subhead: string, cta
 
 /** Função pura — não passa pelo runtime do Mastra. */
 export function gerarLp(input: GerarLpInput): GerarLpOutput {
-  const index = loadIndex();
+  const fullIndex = loadIndex();
+  const index = filtrarPorVertical(fullIndex, input.vertical);
   const chosen = pickLp(index, input.hipotese, input.lp_id);
   const lpPath = resolve(LPS_DIR, chosen.arquivo_lp);
   if (!existsSync(lpPath)) throw new Error(`LP não encontrada: ${lpPath}`);
@@ -98,7 +109,8 @@ const inputSchema = z.object({
   headline: z.string().describe('Headline injetada na LP. 1 frase curta.'),
   subhead: z.string().describe('Subhead injetada na LP. 1-2 frases.'),
   cta: z.string().default('Começar agora').describe('Texto do CTA principal.'),
-  lp_id: z.string().optional().describe('Forçar lp-1..lp-6.'),
+  lp_id: z.string().optional().describe('Forçar lp específica do índice.'),
+  vertical: z.string().optional().describe('Filtra o pool por vertical (edtech, healthtech, ...).'),
 });
 
 const outputSchema = z.object({
