@@ -35,7 +35,7 @@ services:
       - key: MAX_CONCURRENT_RUNS
         value: "3"
       - key: SUBMISSION_RATE_LIMIT
-        value: "120"
+        value: "5"
       - key: ANTHROPIC_API_KEY
         sync: false
       - key: ALLOWED_ORIGINS
